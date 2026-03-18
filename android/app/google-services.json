@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "496479402543",
+    "firebase_url": "https://fintrack-66558-default-rtdb.firebaseio.com",
+    "project_id": "fintrack-66558",
+    "storage_bucket": "fintrack-66558.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:496479402543:android:3abdfa3c86082cb126e4da",
+        "android_client_info": {
+          "package_name": "com.example.fintrack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "496479402543-trs7vg94o572l0iesbjcniu74gbl87j6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4Ba1mJXv_PIfWMckqbywXUpSquFurlUg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "496479402543-trs7vg94o572l0iesbjcniu74gbl87j6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "496479402543-9a3tqfr95fsf6mlujo0e5ilr64s9990r.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fintrack"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
