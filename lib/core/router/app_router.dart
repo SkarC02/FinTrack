@@ -1,3 +1,7 @@
+// ═══════════════════════════════════════════════════════════════════════════
+//  lib/core/router/app_router.dart
+// ═══════════════════════════════════════════════════════════════════════════
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +9,9 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/services/auth_service.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
+import '../../features/miembros/screens/miembros_list_screen.dart';
+import '../../features/miembros/screens/miembro_detail_screen.dart';
+import '../../features/miembros/screens/miembro_nuevo_screen.dart';
 import '../constants/app_routes.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -19,10 +26,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == AppRoutes.register;
 
       if (!isLoggedIn && !isPublicRoute) return AppRoutes.login;
-      if (isLoggedIn && isPublicRoute) return AppRoutes.dashboard;
+      if (isLoggedIn && isPublicRoute) return AppRoutes.miembros; // ← temporal: va directo a miembros
       return null;
     },
     routes: [
+      // ── Rutas públicas ──────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
@@ -31,67 +39,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.register,
         builder: (context, state) => const RegisterScreen(),
       ),
-      // ShellRoute(
-      //   builder: (context, state, child) => MainShell(child: child),
-      //   routes: [
-      //     GoRoute(
-      //       path: AppRoutes.dashboard,
-      //       builder: (context, state) => const DashboardScreen(),
-      //     ),
-      //     GoRoute(
-      //       path: AppRoutes.ingresos,
-      //       builder: (context, state) => const HistorialIngresosScreen(),
-      //       routes: [
-      //         GoRoute(
-      //           path: 'nuevo',
-      //           builder: (context, state) => const IngresoFormScreen(),
-      //         ),
-      //         GoRoute(
-      //           path: 'editar/:id',
-      //           builder: (context, state) => IngresoFormScreen(
-      //             ingresoId: state.pathParameters['id'],
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //     GoRoute(
-      //       path: AppRoutes.gastos,
-      //       builder: (context, state) => const HistorialGastosScreen(),
-      //       routes: [
-      //         GoRoute(
-      //           path: 'nuevo',
-      //           builder: (context, state) => const GastoFormScreen(),
-      //         ),
-      //         GoRoute(
-      //           path: 'editar/:id',
-      //           builder: (context, state) => GastoFormScreen(
-      //             gastoId: state.pathParameters['id'],
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //     GoRoute(
-      //       path: AppRoutes.miembros,
-      //       builder: (context, state) => const MiembrosListScreen(),
-      //       routes: [
-      //         GoRoute(
-      //           path: 'nuevo',
-      //           builder: (context, state) => const MiembroDetailScreen(),
-      //         ),
-      //         GoRoute(
-      //           path: 'detalle/:id',
-      //           builder: (context, state) => MiembroDetailScreen(
-      //             miembroId: state.pathParameters['id'],
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //     GoRoute(
-      //       path: AppRoutes.reportes,
-      //       builder: (context, state) => const ReportesScreen(),
-      //     ),
-      //   ],
-      // ),
+
+      // ── Rutas de Miembros (sin ShellRoute por ahora) ────────────────────
+      GoRoute(
+        path: AppRoutes.miembros,
+        builder: (context, state) => const MiembrosListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.miembroNuevo,
+        builder: (context, state) => const MiembroNuevoScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.miembroDetalle,          // '/miembros/detalle/:id'
+        builder: (context, state) => MiembroDetailScreen(
+          miembroId: state.pathParameters['id'] ?? '',
+        ),
+      ),
+
+      // ── Placeholder dashboard (para que el redirect no falle) ───────────
+      GoRoute(
+        path: AppRoutes.dashboard,
+        builder: (context, state) => const _PlaceholderScreen('Dashboard'),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(
@@ -100,3 +69,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
+
+// ── Pantalla temporal para rutas no implementadas ─────────────────────────
+class _PlaceholderScreen extends StatelessWidget {
+  const _PlaceholderScreen(this.nombre);
+  final String nombre;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(nombre)),
+      body: Center(
+        child: Text(
+          '$nombre\n(en construcción)',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+      ),
+    );
+  }
+}
