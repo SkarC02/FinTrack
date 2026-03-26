@@ -5,16 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/services/auth_service.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
-import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/ingresos/screens/ingreso_form_screen.dart';
 import '../../features/ingresos/screens/historial_ingresos_screen.dart';
-import '../../features/gastos/screens/gasto_form_screen.dart';
-import '../../features/gastos/screens/historial_gastos_screen.dart';
-import '../../features/miembros/screens/miembros_list_screen.dart';
-import '../../features/miembros/screens/miembro_detail_screen.dart';
-import '../../features/reportes/screens/reportes_screen.dart';
+// import '../../features/gastos/screens/gasto_form_screen.dart';
+// import '../../features/gastos/screens/historial_gastos_screen.dart';
+// import '../../features/miembros/screens/miembros_list_screen.dart';
+// import '../../features/miembros/screens/miembro_detail_screen.dart';
+// import '../../features/reportes/screens/reportes_screen.dart';
 import '../constants/app_routes.dart';
-import '../widgets/main_shell.dart';
+// import '../widgets/main_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -23,15 +22,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.login,
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull != null;
-      final isPublicRoute =
-          state.matchedLocation == AppRoutes.login ||
+      final isPublicRoute = state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
 
       if (!isLoggedIn && !isPublicRoute) return AppRoutes.login;
-      if (isLoggedIn && isPublicRoute) return AppRoutes.dashboard;
+      if (isLoggedIn && isPublicRoute) return AppRoutes.ingresos;
       return null;
     },
     routes: [
+      // ── Públicas ───────────────────────────────────────────
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
@@ -40,66 +39,71 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.register,
         builder: (context, state) => const RegisterScreen(),
       ),
-      // ShellRoute(
-      //   builder: (context, state, child) => MainShell(child: child),
+
+      // ── Ingresos ───────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.ingresos,
+        builder: (context, state) => const HistorialIngresosScreen(),
+        routes: [
+          GoRoute(
+            path: 'nuevo',
+            builder: (context, state) => const IngresoFormScreen(),
+          ),
+          GoRoute(
+            path: 'editar/:id',
+            builder: (context, state) => IngresoFormScreen(
+              ingresoId: state.pathParameters['id'],
+            ),
+          ),
+        ],
+      ),
+
+      // ── Gastos (pendiente — Dinora) ─────────────────────────
+      // GoRoute(
+      //   path: AppRoutes.gastos,
+      //   builder: (context, state) => const HistorialGastosScreen(),
       //   routes: [
       //     GoRoute(
-      //       path: AppRoutes.dashboard,
-      //       builder: (context, state) => const DashboardScreen(),
+      //       path: 'nuevo',
+      //       builder: (context, state) => const GastoFormScreen(),
       //     ),
       //     GoRoute(
-      //       path: AppRoutes.ingresos,
-      //       builder: (context, state) => const HistorialIngresosScreen(),
-      //       routes: [
-      //         GoRoute(
-      //           path: 'nuevo',
-      //           builder: (context, state) => const IngresoFormScreen(),
-      //         ),
-      //         GoRoute(
-      //           path: 'editar/:id',
-      //           builder: (context, state) => IngresoFormScreen(
-      //             ingresoId: state.pathParameters['id'],
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //     GoRoute(
-      //       path: AppRoutes.gastos,
-      //       builder: (context, state) => const HistorialGastosScreen(),
-      //       routes: [
-      //         GoRoute(
-      //           path: 'nuevo',
-      //           builder: (context, state) => const GastoFormScreen(),
-      //         ),
-      //         GoRoute(
-      //           path: 'editar/:id',
-      //           builder: (context, state) => GastoFormScreen(
-      //             gastoId: state.pathParameters['id'],
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //     GoRoute(
-      //       path: AppRoutes.miembros,
-      //       builder: (context, state) => const MiembrosListScreen(),
-      //       routes: [
-      //         GoRoute(
-      //           path: 'nuevo',
-      //           builder: (context, state) => const MiembroDetailScreen(),
-      //         ),
-      //         GoRoute(
-      //           path: 'detalle/:id',
-      //           builder: (context, state) => MiembroDetailScreen(
-      //             miembroId: state.pathParameters['id'],
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //     GoRoute(
-      //       path: AppRoutes.reportes,
-      //       builder: (context, state) => const ReportesScreen(),
+      //       path: 'editar/:id',
+      //       builder: (context, state) => GastoFormScreen(
+      //         gastoId: state.pathParameters['id'],
+      //       ),
       //     ),
       //   ],
+      // ),
+
+      // ── Miembros (pendiente — Jasson) ───────────────────────
+      // GoRoute(
+      //   path: AppRoutes.miembros,
+      //   builder: (context, state) => const MiembrosListScreen(),
+      //   routes: [
+      //     GoRoute(
+      //       path: 'nuevo',
+      //       builder: (context, state) => const MiembroDetailScreen(),
+      //     ),
+      //     GoRoute(
+      //       path: 'detalle/:id',
+      //       builder: (context, state) => MiembroDetailScreen(
+      //         miembroId: state.pathParameters['id'],
+      //       ),
+      //     ),
+      //   ],
+      // ),
+
+      // ── Dashboard (pendiente — Jonathan) ───────────────────
+      // GoRoute(
+      //   path: AppRoutes.dashboard,
+      //   builder: (context, state) => const DashboardScreen(),
+      // ),
+
+      // ── Reportes (pendiente — Fátima) ──────────────────────
+      // GoRoute(
+      //   path: AppRoutes.reportes,
+      //   builder: (context, state) => const ReportesScreen(),
       // ),
     ],
     errorBuilder: (context, state) => Scaffold(

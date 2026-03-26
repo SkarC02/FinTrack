@@ -11,44 +11,44 @@ class AppColors {
   AppColors._();
 
   // Dorado (color principal)
-  static const Color gold       = Color(0xFFC9A84C);
-  static const Color goldLight  = Color(0xFFE8C97A);
-  static const Color goldDim    = Color(0xFF8B6F2E);
-  static const Color goldGlow   = Color(0x26C9A84C); // 15% opacity
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldDim = Color(0xFF8B6F2E);
+  static const Color goldGlow = Color(0x26C9A84C); // 15% opacity
 
   // Oscuros (fondos)
-  static const Color dark       = Color(0xFF1A1510);
-  static const Color dark2      = Color(0xFF22190F);
-  static const Color dark3      = Color(0xFF2C2418);
-  static const Color dark4      = Color(0xFF3D3220);
-  static const Color dark5      = Color(0xFF4E4130);
+  static const Color dark = Color(0xFF1A1510);
+  static const Color dark2 = Color(0xFF22190F);
+  static const Color dark3 = Color(0xFF2C2418);
+  static const Color dark4 = Color(0xFF3D3220);
+  static const Color dark5 = Color(0xFF4E4130);
 
   // Claros (superficies modo claro)
-  static const Color cream      = Color(0xFFFAF6EE);
-  static const Color cream2     = Color(0xFFF3EDE0);
-  static const Color white      = Color(0xFFFFFFFF);
+  static const Color cream = Color(0xFFFAF6EE);
+  static const Color cream2 = Color(0xFFF3EDE0);
+  static const Color white = Color(0xFFFFFFFF);
 
   // Texto
-  static const Color textDark   = Color(0xFF2C2418);
-  static const Color textMuted  = Color(0xFF7A6548);
-  static const Color textLight  = Color(0xFFFAF6EE);
+  static const Color textDark = Color(0xFF2C2418);
+  static const Color textMuted = Color(0xFF7A6548);
+  static const Color textLight = Color(0xFFFAF6EE);
   static const Color textMutedLight = Color(0xFF9A876A);
 
   // Semánticos
-  static const Color green      = Color(0xFF27694A);
+  static const Color green = Color(0xFF27694A);
   static const Color greenLight = Color(0xFF2ECC71);
-  static const Color greenBg    = Color(0xFFEBF8F1);
-  static const Color red        = Color(0xFFC0392B);
-  static const Color redLight   = Color(0xFFE74C3C);
-  static const Color redBg      = Color(0xFFFDF0EE);
-  static const Color blue       = Color(0xFF2C5F8A);
-  static const Color blueBg     = Color(0xFFEAF2FA);
-  static const Color purple     = Color(0xFF8E44AD);
-  static const Color orange     = Color(0xFFE67E22);
-  static const Color teal       = Color(0xFF16A085);
+  static const Color greenBg = Color(0xFFEBF8F1);
+  static const Color red = Color(0xFFC0392B);
+  static const Color redLight = Color(0xFFE74C3C);
+  static const Color redBg = Color(0xFFFDF0EE);
+  static const Color blue = Color(0xFF2C5F8A);
+  static const Color blueBg = Color(0xFFEAF2FA);
+  static const Color purple = Color(0xFF8E44AD);
+  static const Color orange = Color(0xFFE67E22);
+  static const Color teal = Color(0xFF16A085);
 
   // Bordes
-  static const Color borderDark  = Color(0x2DC9A84C); // 18% opacity gold
+  static const Color borderDark = Color(0x2DC9A84C); // 18% opacity gold
   static const Color borderLight = Color(0xFFEDE5D0);
 }
 
@@ -61,28 +61,44 @@ class AppTheme {
     final base = ThemeData.dark();
     final textTheme = GoogleFonts.dmSansTextTheme(base.textTheme).copyWith(
       displayLarge: GoogleFonts.playfairDisplay(
-        fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.textLight,
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textLight,
       ),
       displayMedium: GoogleFonts.playfairDisplay(
-        fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textLight,
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textLight,
       ),
       headlineMedium: GoogleFonts.playfairDisplay(
-        fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textLight,
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textLight,
       ),
       titleLarge: GoogleFonts.dmSans(
-        fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textLight,
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textLight,
       ),
       titleMedium: GoogleFonts.dmSans(
-        fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textLight,
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textLight,
       ),
       bodyLarge: GoogleFonts.dmSans(
-        fontSize: 15, fontWeight: FontWeight.w400, color: AppColors.textLight,
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textLight,
       ),
       bodyMedium: GoogleFonts.dmSans(
-        fontSize: 13, fontWeight: FontWeight.w400, color: AppColors.textMutedLight,
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textMutedLight,
       ),
       labelSmall: GoogleFonts.dmMono(
-        fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textMutedLight,
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textMutedLight,
         letterSpacing: 0.5,
       ),
     );
@@ -110,7 +126,9 @@ class AppTheme {
         centerTitle: false,
         iconTheme: const IconThemeData(color: AppColors.textLight),
         titleTextStyle: GoogleFonts.playfairDisplay(
-          fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textLight,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textLight,
         ),
         surfaceTintColor: Colors.transparent,
       ),
@@ -138,7 +156,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(14),
           ),
           textStyle: GoogleFonts.dmSans(
-            fontSize: 15, fontWeight: FontWeight.w700,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -153,7 +172,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(14),
           ),
           textStyle: GoogleFonts.dmSans(
-            fontSize: 15, fontWeight: FontWeight.w600,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -163,7 +183,8 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.gold,
           textStyle: GoogleFonts.dmSans(
-            fontSize: 13, fontWeight: FontWeight.w600,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -172,7 +193,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.dark3,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(13),
           borderSide: const BorderSide(color: AppColors.borderDark, width: 1.5),
@@ -194,7 +216,9 @@ class AppTheme {
           fontSize: 14,
         ),
         labelStyle: GoogleFonts.dmSans(
-          color: AppColors.goldDim, fontSize: 12, fontWeight: FontWeight.w700,
+          color: AppColors.goldDim,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
         ),
         prefixIconColor: AppColors.goldDim,
@@ -220,7 +244,8 @@ class AppTheme {
       // SnackBar
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.dark2,
-        contentTextStyle: GoogleFonts.dmSans(color: AppColors.textLight, fontSize: 13),
+        contentTextStyle:
+            GoogleFonts.dmSans(color: AppColors.textLight, fontSize: 13),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
@@ -265,35 +290,51 @@ class AppTextStyles {
   AppTextStyles._();
 
   static TextStyle get moneyLarge => GoogleFonts.dmMono(
-    fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.textLight,
-  );
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textLight,
+      );
 
   static TextStyle get moneyMedium => GoogleFonts.dmMono(
-    fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.textLight,
-  );
+        fontSize: 17,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textLight,
+      );
 
   static TextStyle get moneySmall => GoogleFonts.dmMono(
-    fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textLight,
-  );
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textLight,
+      );
 
   static TextStyle get positive => GoogleFonts.dmMono(
-    fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.green,
-  );
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.green,
+      );
 
   static TextStyle get negative => GoogleFonts.dmMono(
-    fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.red,
-  );
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.red,
+      );
 
   static TextStyle get golden => GoogleFonts.dmMono(
-    fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.goldDim,
-  );
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: AppColors.goldDim,
+      );
 
   static TextStyle get cardTitle => GoogleFonts.playfairDisplay(
-    fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark,
-  );
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textDark,
+      );
 
   static TextStyle get sectionLabel => GoogleFonts.dmSans(
-    fontSize: 10, fontWeight: FontWeight.w800,
-    color: AppColors.textMuted, letterSpacing: 1.5,
-  );
+        fontSize: 10,
+        fontWeight: FontWeight.w800,
+        color: AppColors.textMuted,
+        letterSpacing: 1.5,
+      );
 }
