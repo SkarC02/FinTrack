@@ -5,16 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/services/auth_service.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
-import '../../features/dashboard/screens/dashboard_screen.dart';
-import '../../features/ingresos/screens/ingreso_form_screen.dart';
-import '../../features/ingresos/screens/historial_ingresos_screen.dart';
-import '../../features/gastos/screens/gasto_form_screen.dart';
-import '../../features/gastos/screens/historial_gastos_screen.dart';
-import '../../features/miembros/screens/miembros_list_screen.dart';
-import '../../features/miembros/screens/miembro_detail_screen.dart';
-import '../../features/reportes/screens/reportes_screen.dart';
 import '../constants/app_routes.dart';
-import '../widgets/main_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
