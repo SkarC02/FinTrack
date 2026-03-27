@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sic_app/features/dashboard/screens/dashboard_screen.dart';
 
 import '../../features/auth/services/auth_service.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/ingresos/screens/ingreso_form_screen.dart';
 import '../../features/ingresos/screens/historial_ingresos_screen.dart';
+import '../../features/dashboard/screens/dashboard_screen.dart';
 // import '../../features/gastos/screens/gasto_form_screen.dart';
 // import '../../features/gastos/screens/historial_gastos_screen.dart';
 // import '../../features/miembros/screens/miembros_list_screen.dart';
@@ -26,7 +28,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == AppRoutes.register;
 
       if (!isLoggedIn && !isPublicRoute) return AppRoutes.login;
-      if (isLoggedIn && isPublicRoute) return AppRoutes.ingresos;
+      if (isLoggedIn && isPublicRoute) return AppRoutes.dashboard;
       return null;
     },
     routes: [
@@ -94,11 +96,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       //   ],
       // ),
 
-      // ── Dashboard (pendiente — Jonathan) ───────────────────
-      // GoRoute(
-      //   path: AppRoutes.dashboard,
-      //   builder: (context, state) => const DashboardScreen(),
-      // ),
+      // ── Dashboard ───────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.dashboard,
+        builder: (context, state) => const DashboardScreen(),
+      ),
 
       // ── Reportes (pendiente — Fátima) ──────────────────────
       // GoRoute(

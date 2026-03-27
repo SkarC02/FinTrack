@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart'; // ← AGREGADO
 
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -13,6 +14,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await initializeDateFormatting('es', null); // ← AGREGADO
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
