@@ -1,16 +1,11 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/core/constants/app_routes.dart
-//  Nombres y paths de rutas — usar SIEMPRE estas constantes
-// ═══════════════════════════════════════════════════════════════════════════
+
 
 class AppRoutes {
   AppRoutes._();
 
-  // ── Rutas públicas (sin autenticación) ────────────────────────────────────
   static const String login    = '/login';
   static const String register = '/register';
 
-  // ── Rutas protegidas (requieren autenticación) ────────────────────────────
   static const String dashboard     = '/dashboard';
   static const String ingresos      = '/ingresos';
   static const String ingresoNuevo  = '/ingresos/nuevo';

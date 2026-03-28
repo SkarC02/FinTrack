@@ -1,40 +1,29 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/core/theme/app_theme.dart
-//  Tema global de SIC — colores, tipografía, componentes
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ── PALETA DE COLORES ────────────────────────────────────────────────────────
 class AppColors {
   AppColors._();
 
-  // Dorado (color principal)
   static const Color gold = Color(0xFFC9A84C);
   static const Color goldLight = Color(0xFFE8C97A);
   static const Color goldDim = Color(0xFF8B6F2E);
   static const Color goldGlow = Color(0x26C9A84C); // 15% opacity
 
-  // Oscuros (fondos)
   static const Color dark = Color(0xFF1A1510);
   static const Color dark2 = Color(0xFF22190F);
   static const Color dark3 = Color(0xFF2C2418);
   static const Color dark4 = Color(0xFF3D3220);
   static const Color dark5 = Color(0xFF4E4130);
 
-  // Claros (superficies modo claro)
   static const Color cream = Color(0xFFFAF6EE);
   static const Color cream2 = Color(0xFFF3EDE0);
   static const Color white = Color(0xFFFFFFFF);
 
-  // Texto
   static const Color textDark = Color(0xFF2C2418);
   static const Color textMuted = Color(0xFF7A6548);
   static const Color textLight = Color(0xFFFAF6EE);
   static const Color textMutedLight = Color(0xFF9A876A);
 
-  // Semánticos
   static const Color green = Color(0xFF27694A);
   static const Color greenLight = Color(0xFF2ECC71);
   static const Color greenBg = Color(0xFFEBF8F1);
@@ -47,16 +36,14 @@ class AppColors {
   static const Color orange = Color(0xFFE67E22);
   static const Color teal = Color(0xFF16A085);
 
-  // Bordes
-  static const Color borderDark = Color(0x2DC9A84C); // 18% opacity gold
+  static const Color borderDark = Color(0x2DC9A84C);
   static const Color borderLight = Color(0xFFEDE5D0);
 }
 
-// ── TEMA PRINCIPAL ────────────────────────────────────────────────────────────
+
 class AppTheme {
   AppTheme._();
 
-  // ── TEMA OSCURO (principal) ───────────────────────────────────────────────
   static ThemeData get darkTheme {
     final base = ThemeData.dark();
     final textTheme = GoogleFonts.dmSansTextTheme(base.textTheme).copyWith(
@@ -119,7 +106,6 @@ class AppTheme {
         onSurface: AppColors.textLight,
       ),
 
-      // AppBar
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.dark,
         elevation: 0,
@@ -162,7 +148,6 @@ class AppTheme {
         ),
       ),
 
-      // OutlinedButton
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.gold,
@@ -178,7 +163,6 @@ class AppTheme {
         ),
       ),
 
-      // TextButton
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.gold,
@@ -189,7 +173,6 @@ class AppTheme {
         ),
       ),
 
-      // InputDecoration (campos de texto)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.dark3,
@@ -225,7 +208,6 @@ class AppTheme {
         suffixIconColor: AppColors.textMutedLight,
       ),
 
-      // BottomNavigationBar
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.dark,
         selectedItemColor: AppColors.goldLight,
@@ -234,14 +216,12 @@ class AppTheme {
         elevation: 0,
       ),
 
-      // Divider
       dividerTheme: const DividerThemeData(
         color: AppColors.borderDark,
         thickness: 1,
         space: 0,
       ),
 
-      // SnackBar
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.dark2,
         contentTextStyle:
@@ -250,7 +230,6 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
       ),
 
-      // Floating Action Button
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.gold,
         foregroundColor: AppColors.dark,
@@ -260,7 +239,6 @@ class AppTheme {
         ),
       ),
 
-      // Switch
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
@@ -276,7 +254,6 @@ class AppTheme {
     );
   }
 
-  // ── TEMA CLARO (reservado para futuro) ────────────────────────────────────
   static ThemeData get lightTheme {
     return ThemeData.light().copyWith(
       scaffoldBackgroundColor: AppColors.cream,
@@ -285,7 +262,6 @@ class AppTheme {
   }
 }
 
-// ── ESTILOS DE TEXTO REUTILIZABLES ───────────────────────────────────────────
 class AppTextStyles {
   AppTextStyles._();
 

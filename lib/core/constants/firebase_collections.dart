@@ -1,13 +1,6 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/core/constants/firebase_collections.dart
-//  Nombres de colecciones Firestore — usar SIEMPRE estas constantes,
-//  nunca strings literales en el código.
-// ═══════════════════════════════════════════════════════════════════════════
-
 class FirebaseCollections {
   FirebaseCollections._();
 
-  // ── Colecciones raíz ──────────────────────────────────────────────────────
   static const String usuarios        = 'usuarios';
   static const String ingresos        = 'ingresos';
   static const String gastos          = 'gastos';
@@ -16,7 +9,6 @@ class FirebaseCollections {
   static const String resumenMensual  = 'resumen_mensual';
   static const String proyectos       = 'proyectos';
 
-  // ── Campos del documento Usuario ──────────────────────────────────────────
   static const String uId              = 'uid';
   static const String nombreCompleto   = 'nombreCompleto';
   static const String correo           = 'correo';
@@ -29,7 +21,6 @@ class FirebaseCollections {
   static const String createdAt        = 'createdAt';
   static const String updatedAt        = 'updatedAt';
 
-  // ── Campos del documento Ingreso ──────────────────────────────────────────
   static const String tipo             = 'tipo';
   static const String monto            = 'monto';
   static const String memberId         = 'memberId';
@@ -40,7 +31,6 @@ class FirebaseCollections {
   static const String fecha            = 'fecha';
   static const String createdBy        = 'createdBy';
 
-  // ── Campos del documento Gasto ────────────────────────────────────────────
   static const String categoria        = 'categoria';
   static const String descripcion      = 'descripcion';
   static const String proveedor        = 'proveedor';
@@ -48,7 +38,6 @@ class FirebaseCollections {
   static const String numeroFactura    = 'numeroFactura';
   static const String estado           = 'estado';
 
-  // ── Campos Resumen Mensual ────────────────────────────────────────────────
   static const String periodo          = 'periodo';
   static const String totalIngresos    = 'totalIngresos';
   static const String totalGastos      = 'totalGastos';

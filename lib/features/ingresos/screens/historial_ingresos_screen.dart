@@ -1,7 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/ingresos/screens/historial_ingresos_screen.dart
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +14,6 @@ class HistorialIngresosScreen extends StatefulWidget {
 }
 
 class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
-  // Filtros
   TipoIngreso? _tipoFiltro;
   DateTime? _desde;
   DateTime? _hasta;
@@ -51,7 +46,6 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
       ),
       body: Column(
         children: [
-          // ── Buscador ─────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: TextField(
@@ -63,7 +57,6 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
             ),
           ),
 
-          // ── Chips de filtros activos ──────────────────────────
           if (_tipoFiltro != null || _desde != null || _hasta != null)
             _FiltrosActivos(
               tipo: _tipoFiltro,
@@ -74,7 +67,6 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
 
           const SizedBox(height: 8),
 
-          // ── Lista ────────────────────────────────────────────
           Expanded(
             child: StreamBuilder<List<IngresoModel>>(
               stream: _buildStream(),
@@ -177,7 +169,6 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
   }
 }
 
-// ── Tile de cada ingreso ──────────────────────────────────────────────────────
 class _IngresoTile extends StatelessWidget {
   final IngresoModel ingreso;
   final NumberFormat fmtMonto;
@@ -276,7 +267,6 @@ class _IngresoTile extends StatelessWidget {
   }
 }
 
-// ── Badge de tipo ─────────────────────────────────────────────────────────────
 class _TipoBadge extends StatelessWidget {
   final TipoIngreso tipo;
   const _TipoBadge({required this.tipo});
@@ -315,7 +305,6 @@ class _TipoBadge extends StatelessWidget {
   }
 }
 
-// ── Resumen total ─────────────────────────────────────────────────────────────
 class _ResumenBanner extends StatelessWidget {
   final double total;
   final int cantidad;
@@ -369,7 +358,6 @@ class _ResumenBanner extends StatelessWidget {
   }
 }
 
-// ── Chips de filtros activos ──────────────────────────────────────────────────
 class _FiltrosActivos extends StatelessWidget {
   final TipoIngreso? tipo;
   final DateTime? desde;
@@ -431,7 +419,6 @@ class _Chip extends StatelessWidget {
   }
 }
 
-// ── Empty State ───────────────────────────────────────────────────────────────
 class _EmptyState extends StatelessWidget {
   final TipoIngreso? tipoFiltro;
   const _EmptyState({this.tipoFiltro});
@@ -469,7 +456,6 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ── Bottom Sheet de Filtros ───────────────────────────────────────────────────
 class _FiltrosSheet extends StatefulWidget {
   final TipoIngreso? tipoInicial;
   final DateTime? desdeInicial;

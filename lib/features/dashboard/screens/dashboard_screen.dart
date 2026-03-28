@@ -1,7 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/dashboard/screens/dashboard_screen.dart
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,10 +16,10 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user         = ref.watch(currentUserProvider).valueOrNull;
-    // ✅ Usa el provider global — no se recrea en cada build
     final resumenAsync = ref.watch(dashboardResumenProvider);
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.cream,
       appBar: _buildAppBar(context, ref, user?.nombreCompleto ?? ''),
       body: resumenAsync.when(
@@ -74,7 +70,6 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  // ── AppBar ────────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(
       BuildContext context, WidgetRef ref, String nombre) {
     final mes = DateFormat('MMM yyyy', 'es').format(DateTime.now());
@@ -138,7 +133,6 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  // ── KPI Cards ─────────────────────────────────────────────────────────────
   Widget _buildKPIs(DashboardResumen r) {
     final fmt = NumberFormat('#,##0.00');
     return GridView.count(
@@ -181,7 +175,6 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  // ── Alerta presupuesto ────────────────────────────────────────────────────
   Widget _buildAlerts(DashboardResumen r) {
     if (r.totalIngresos == 0) return const SizedBox.shrink();
     if (r.totalGastos <= r.totalIngresos * 0.8) return const SizedBox.shrink();
@@ -207,9 +200,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  // ── Gráfica de barras ─────────────────────────────────────────────────────
   Widget _buildBarChart(WidgetRef ref) {
-    // ✅ Provider global — no se recrea en cada build
     final graficaAsync = ref.watch(dashboardGraficaProvider);
 
     return Container(
@@ -331,7 +322,6 @@ class DashboardScreen extends ConsumerWidget {
             fontSize: 10, color: AppColors.textMuted)),
   ]);
 
-  // ── Dona distribución ingresos ────────────────────────────────────────────
   Widget _buildDonutChart(DashboardResumen r) {
     if (r.ingresosPorTipo.isEmpty) return const SizedBox.shrink();
 
@@ -422,7 +412,6 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  // ── Últimas transacciones ─────────────────────────────────────────────────
   Widget _buildUltimasTransacciones(
       BuildContext context, DashboardResumen r) {
     final fmt = DateFormat('dd/MM/yy');
@@ -518,7 +507,6 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-// ── KPI Card ──────────────────────────────────────────────────────────────────
 class _KpiCard extends StatelessWidget {
   final String  label;
   final String  value;

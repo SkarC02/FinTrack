@@ -1,7 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/dashboard/services/dashboard_service.dart
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sic_app/features/gastos/screens/models/gasto_model.dart';
@@ -10,25 +6,19 @@ import '../../../core/constants/firebase_collections.dart';
 import '../../ingresos/models/ingreso_model.dart';
 import '../../gastos/models/gasto_model.dart';
 
-// ── Providers globales ────────────────────────────────────────────────────────
-
-// Provider del servicio
 final dashboardServiceProvider = Provider<DashboardService>((ref) {
   return DashboardService();
 });
 
-// Stream del resumen del mes — provider global estable
 final dashboardResumenProvider = StreamProvider<DashboardResumen>((ref) {
   return ref.watch(dashboardServiceProvider).streamResumenMes();
 });
 
-// Future de la gráfica mensual — provider global estable
 final dashboardGraficaProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) {
   return ref.watch(dashboardServiceProvider).datosGraficaMensual();
 });
 
-// ── Modelo de resumen ─────────────────────────────────────────────────────────
 class DashboardResumen {
   final double totalIngresos;
   final double totalGastos;
@@ -53,11 +43,9 @@ class DashboardResumen {
   });
 }
 
-// ── Servicio ──────────────────────────────────────────────────────────────────
 class DashboardService {
   final _db = FirebaseFirestore.instance;
 
-  // ── Resumen del mes actual ────────────────────────────────────────────────
   Stream<DashboardResumen> streamResumenMes() {
     final ahora  = DateTime.now();
     final inicio = DateTime(ahora.year, ahora.month, 1);
@@ -72,7 +60,6 @@ class DashboardService {
         .orderBy(FirebaseCollections.fecha, descending: true)
         .snapshots()
         .asyncMap((ingresosSnap) async {
-      // ── Ingresos ────────────────────────────────────────────
       final ingresos = ingresosSnap.docs
           .map(IngresoModel.fromFirestore)
           .toList();
@@ -85,7 +72,6 @@ class DashboardService {
         ingresosPorTipo[key] = (ingresosPorTipo[key] ?? 0) + i.monto;
       }
 
-      // ── Gastos ──────────────────────────────────────────────
       List<GastoModel> gastos = [];
       double totalGastos = 0;
       final gastosPorCategoria = <String, double>{};
@@ -107,10 +93,8 @@ class DashboardService {
               (gastosPorCategoria[g.categoria] ?? 0) + g.monto;
         }
       } catch (_) {
-        // Si gastos aún no existe en Firestore, seguimos sin error
       }
 
-      // ── Miembros activos ─────────────────────────────────────
       int totalMiembros = 0;
       try {
         final snap = await _db
@@ -121,7 +105,6 @@ class DashboardService {
         totalMiembros = snap.count ?? 0;
       } catch (_) {}
 
-      // ── Diezmadores únicos ───────────────────────────────────
       final diezmadores = ingresos
           .where((i) => i.tipo == TipoIngreso.diezmo)
           .map((i) => i.memberId)
@@ -142,7 +125,6 @@ class DashboardService {
     });
   }
 
-  // ── Gráfica de los últimos N meses ───────────────────────────────────────
   Future<List<Map<String, dynamic>>> datosGraficaMensual(
       {int meses = 6}) async {
     final result = <Map<String, dynamic>>[];

@@ -1,25 +1,16 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/core/constants/app_constants.dart
-//  Todas las constantes globales de la aplicación SIC
-// ═══════════════════════════════════════════════════════════════════════════
-
 class AppConstants {
   AppConstants._();
 
-  // ── Info de la app ────────────────────────────────────────────────────────
   static const String appName      = 'SIC';
   static const String appFullName  = 'Sistema de Contabilidad Iglesia';
   static const String iglesiaNombre = 'Iglesia Central';
   static const String appVersion   = '1.0.0';
 
-  // ── Moneda ────────────────────────────────────────────────────────────────
   static const String simboloMoneda = 'L.';
   static const String codigoMoneda  = 'HNL';
 
-  // ── Código de sobre ───────────────────────────────────────────────────────
   static const String codigoSobrePrefix = 'SIC-';
 
-  // ── Tipos de Ingreso ──────────────────────────────────────────────────────
   static const String tiposDiezmo    = 'diezmo';
   static const String tiposOfrenda   = 'ofrenda';
   static const String tiposDonacion  = 'donacion';
@@ -42,7 +33,6 @@ class AppConstants {
     tiposMisiones: 'Misiones',
   };
 
-  // ── Categorías de Gasto ───────────────────────────────────────────────────
   static const String catServicios      = 'servicios';
   static const String catMantenimiento  = 'mantenimiento';
   static const String catActividades    = 'actividades';
@@ -65,7 +55,6 @@ class AppConstants {
     catMisiones:      'Misiones',
   };
 
-  // ── Métodos de Pago ───────────────────────────────────────────────────────
   static const String pagoEfectivo     = 'efectivo';
   static const String pagoTransferencia = 'transferencia';
   static const String pagoCheque       = 'cheque';
@@ -82,7 +71,6 @@ class AppConstants {
     pagoCheque:        'Cheque',
   };
 
-  // ── Roles de Usuario ──────────────────────────────────────────────────────
   static const String rolAdmin      = 'admin';
   static const String rolTesorero   = 'tesorero';
   static const String rolSecretario = 'secretario';
@@ -105,7 +93,6 @@ class AppConstants {
     rolMiembro:    'Miembro',
   };
 
-  // ── Validaciones ──────────────────────────────────────────────────────────
   static const int minPasswordLength = 8;
   static const int maxNombreLength   = 100;
   static const int maxNotasLength    = 500;

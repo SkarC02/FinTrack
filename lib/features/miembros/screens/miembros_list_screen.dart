@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/miembros/screens/miembros_list_screen.dart
-//  Lista con buscador, badge de rol, toggle activo/inactivo
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +6,6 @@ import '../../../core/constants/app_routes.dart';
 import '../../auth/models/miembro_model.dart';
 import '../../auth/services/miembro_service.dart';
 
-// ── Provider del filtro de búsqueda ───────────────────────────────────────
 final _busquedaProvider = StateProvider<String>((ref) => '');
 final _soloActivosProvider = StateProvider<bool>((ref) => true);
 
@@ -31,7 +25,6 @@ class MiembrosListScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Miembros'),
         actions: [
-          // Toggle activos/todos
           Row(
             children: [
               Text(
@@ -49,7 +42,6 @@ class MiembrosListScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          // ── Buscador ───────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: TextField(
@@ -66,7 +58,6 @@ class MiembrosListScreen extends ConsumerWidget {
             ),
           ),
 
-          // ── Lista ──────────────────────────────────────────────────────
           Expanded(
             child: stream.when(
               loading: () =>
@@ -103,7 +94,6 @@ class MiembrosListScreen extends ConsumerWidget {
         ],
       ),
 
-      // ── FAB: nuevo miembro ─────────────────────────────────────────────
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.miembroNuevo),
         icon: const Icon(Icons.person_add),
@@ -113,9 +103,6 @@ class MiembrosListScreen extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Tile individual
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _MiembroTile extends ConsumerWidget {
   const _MiembroTile({required this.miembro});
@@ -155,7 +142,6 @@ class _MiembroTile extends ConsumerWidget {
           ),
         ),
 
-        // Nombre + código de sobre
         title: Text(
           miembro.nombreCompleto,
           style: const TextStyle(fontWeight: FontWeight.w600),
@@ -166,7 +152,6 @@ class _MiembroTile extends ConsumerWidget {
           overflow: TextOverflow.ellipsis,
         ),
 
-        // Badge de rol + toggle activo
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -186,9 +171,6 @@ class _MiembroTile extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Badge de rol
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _RolBadge extends StatelessWidget {
   const _RolBadge({required this.rol});
@@ -236,10 +218,6 @@ class _RolBadge extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Botón toggle activo/inactivo con confirmación
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ToggleActivoButton extends ConsumerWidget {
   const _ToggleActivoButton({required this.miembro});

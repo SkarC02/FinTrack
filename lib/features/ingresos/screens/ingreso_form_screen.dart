@@ -1,7 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/ingresos/screens/ingreso_form_screen.dart
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,7 +6,7 @@ import '../models/ingreso_model.dart';
 import '../services/ingreso_service.dart';
 
 class IngresoFormScreen extends StatefulWidget {
-  final String? ingresoId; // null = nuevo, con valor = editar
+  final String? ingresoId; 
 
   const IngresoFormScreen({super.key, this.ingresoId});
 
@@ -30,11 +26,9 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
   bool _loading = false;
   bool _cargandoIngreso = false;
 
-  // Miembro seleccionado
   String _memberId = '';
   String _memberName = '';
 
-  // Lista de miembros buscados
   List<Map<String, dynamic>> _miembros = [];
   bool _buscando = false;
   bool _mostrarLista = false;
@@ -79,7 +73,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
     super.dispose();
   }
 
-  // ── Buscar miembros en Firestore ─────────────────────────────
   Future<void> _buscarMiembros(String query) async {
     if (query.isEmpty) {
       setState(() {
@@ -90,8 +83,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
     }
     setState(() => _buscando = true);
     try {
-      // Traemos todos los activos y filtramos localmente
-      // (evita necesidad de índice compuesto en Firestore)
       final snap = await FirebaseFirestore.instance
           .collection('usuarios')
           .where('activo', isEqualTo: true)
@@ -135,7 +126,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
     });
   }
 
-  // ── Selector de fecha ────────────────────────────────────────
   Future<void> _seleccionarFecha() async {
     final picked = await showDatePicker(
       context: context,
@@ -150,7 +140,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
     if (picked != null) setState(() => _fecha = picked);
   }
 
-  // ── Guardar ──────────────────────────────────────────────────
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
     if (_memberId.isEmpty) {
@@ -216,7 +205,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
     ));
   }
 
-  // ── UI ───────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -247,7 +235,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    // ── Monto ────────────────────────────────────────
                     _SectionLabel(label: 'MONTO (L)'),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -279,7 +266,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── Tipo de ingreso ──────────────────────────────
                     _SectionLabel(label: 'TIPO DE INGRESO'),
                     const SizedBox(height: 10),
                     Wrap(
@@ -319,7 +305,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── Miembro ──────────────────────────────────────
                     _SectionLabel(label: 'MIEMBRO'),
                     const SizedBox(height: 8),
                     Column(
@@ -459,7 +444,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── Método de pago ───────────────────────────────
                     _SectionLabel(label: 'MÉTODO DE PAGO'),
                     const SizedBox(height: 10),
                     Row(
@@ -516,7 +500,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── Fecha ────────────────────────────────────────
                     _SectionLabel(label: 'FECHA'),
                     const SizedBox(height: 8),
                     GestureDetector(
@@ -551,7 +534,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── Notas ────────────────────────────────────────
                     _SectionLabel(label: 'NOTAS (OPCIONAL)'),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -565,7 +547,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
 
                     const SizedBox(height: 32),
 
-                    // ── Botón guardar ────────────────────────────────
                     SizedBox(
                       height: 52,
                       child: ElevatedButton.icon(
@@ -626,7 +607,6 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
   }
 }
 
-// ── Widget auxiliar: etiqueta de sección ─────────────────────────────────────
 class _SectionLabel extends StatelessWidget {
   final String label;
   const _SectionLabel({required this.label});

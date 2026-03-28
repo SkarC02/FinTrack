@@ -1,7 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/ingresos/models/ingreso_model.dart
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum TipoIngreso {
@@ -91,7 +87,6 @@ class IngresoModel {
     this.registradoPor = '',
   });
 
-  // ── Firestore → Model ────────────────────────────────────────
   factory IngresoModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return IngresoModel(
@@ -107,7 +102,6 @@ class IngresoModel {
     );
   }
 
-  // ── Model → Firestore ────────────────────────────────────────
   Map<String, dynamic> toFirestore() {
     return {
       'tipo': tipo.value,
@@ -122,7 +116,6 @@ class IngresoModel {
     };
   }
 
-  // ── copyWith ─────────────────────────────────────────────────
   IngresoModel copyWith({
     String? id,
     TipoIngreso? tipo,

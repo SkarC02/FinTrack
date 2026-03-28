@@ -1,14 +1,8 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/core/utils/validators.dart
-//  Validadores reutilizables para formularios
-// ═══════════════════════════════════════════════════════════════════════════
-
 import '../constants/app_constants.dart';
 
 class Validators {
   Validators._();
 
-  // ── Email ─────────────────────────────────────────────────────────────────
   static String? email(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'El correo electrónico es requerido';
@@ -20,7 +14,6 @@ class Validators {
     return null;
   }
 
-  // ── Contraseña ────────────────────────────────────────────────────────────
   static String? password(String? value) {
     if (value == null || value.isEmpty) {
       return 'La contraseña es requerida';
@@ -41,7 +34,6 @@ class Validators {
     return null;
   }
 
-  // ── Texto requerido ───────────────────────────────────────────────────────
   static String? required(String? value, {String? fieldName}) {
     if (value == null || value.trim().isEmpty) {
       return '${fieldName ?? 'Este campo'} es requerido';
@@ -49,7 +41,6 @@ class Validators {
     return null;
   }
 
-  // ── Nombre ────────────────────────────────────────────────────────────────
   static String? nombre(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'El nombre es requerido';
@@ -63,7 +54,6 @@ class Validators {
     return null;
   }
 
-  // ── Monto ─────────────────────────────────────────────────────────────────
   static String? monto(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'El monto es requerido';
@@ -81,7 +71,6 @@ class Validators {
     return null;
   }
 
-  // ── Teléfono ──────────────────────────────────────────────────────────────
   static String? telefono(String? value) {
     if (value == null || value.trim().isEmpty) return null; // opcional
     final clean = value.replaceAll(RegExp(r'[\s\-\+]'), '');
@@ -91,7 +80,6 @@ class Validators {
     return null;
   }
 
-  // ── Notas / observaciones (opcionales) ───────────────────────────────────
   static String? notas(String? value) {
     if (value != null && value.length > AppConstants.maxNotasLength) {
       return 'Máximo ${AppConstants.maxNotasLength} caracteres';
@@ -99,7 +87,6 @@ class Validators {
     return null;
   }
 
-  // ── Fortaleza de contraseña (retorna 0-4) ─────────────────────────────────
   static int passwordStrength(String password) {
     int score = 0;
     if (password.length >= 8) score++;

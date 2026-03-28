@@ -1,7 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/miembros/models/miembro_model.dart
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/firebase_collections.dart';
@@ -33,7 +29,6 @@ class MiembroModel {
     required this.updatedAt,
   });
 
-  // ── Factory desde Firestore ───────────────────────────────────────────────
   factory MiembroModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return MiembroModel(
@@ -51,7 +46,6 @@ class MiembroModel {
     );
   }
 
-  // ── Factory desde Map ─────────────────────────────────────────────────────
   factory MiembroModel.fromMap(Map<String, dynamic> map, String id) {
     return MiembroModel(
       uid:             id,
@@ -68,7 +62,6 @@ class MiembroModel {
     );
   }
 
-  // ── Convertir a Map para Firestore ────────────────────────────────────────
   Map<String, dynamic> toMap() {
     return {
       FirebaseCollections.nombreCompleto: nombreCompleto,
@@ -84,7 +77,6 @@ class MiembroModel {
     };
   }
 
-  // ── CopyWith ──────────────────────────────────────────────────────────────
   MiembroModel copyWith({
     String?   uid,
     String?   nombreCompleto,
@@ -113,7 +105,6 @@ class MiembroModel {
     );
   }
 
-  // ── Label del rol ─────────────────────────────────────────────────────────
   String get rolLabel =>
       AppConstants.rolesLabel[rol] ?? rol;
 

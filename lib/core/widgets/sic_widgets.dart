@@ -1,12 +1,6 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/core/widgets/sic_widgets.dart
-//  Widgets reutilizables de SIC
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-// ── KPI CARD ─────────────────────────────────────────────────────────────────
 class SICKpiCard extends StatelessWidget {
   final String label;
   final String value;
@@ -70,7 +64,6 @@ class SICKpiCard extends StatelessWidget {
   }
 }
 
-// ── TRANSACTION TILE ─────────────────────────────────────────────────────────
 class SICTransactionTile extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -130,7 +123,6 @@ class SICTransactionTile extends StatelessWidget {
   }
 }
 
-// ── STATUS CHIP ───────────────────────────────────────────────────────────────
 class SICStatusChip extends StatelessWidget {
   final String label;
   final Color bg;
@@ -152,7 +144,6 @@ class SICStatusChip extends StatelessWidget {
   }
 }
 
-// ── SECTION LABEL ─────────────────────────────────────────────────────────────
 class SICSectionLabel extends StatelessWidget {
   final String text;
   const SICSectionLabel(this.text, {super.key});
@@ -167,7 +158,6 @@ class SICSectionLabel extends StatelessWidget {
   );
 }
 
-// ── LOADING OVERLAY ───────────────────────────────────────────────────────────
 class SICLoadingOverlay extends StatelessWidget {
   final bool isLoading;
   final Widget child;
@@ -188,7 +178,6 @@ class SICLoadingOverlay extends StatelessWidget {
   }
 }
 
-// ── EMPTY STATE ───────────────────────────────────────────────────────────────
 class SICEmptyState extends StatelessWidget {
   final String emoji;
   final String title;
@@ -223,7 +212,6 @@ class SICEmptyState extends StatelessWidget {
   }
 }
 
-// ── CARD CONTAINER ────────────────────────────────────────────────────────────
 class SICCard extends StatelessWidget {
   final Widget? header;
   final Widget child;
@@ -257,7 +245,6 @@ class SICCard extends StatelessWidget {
   }
 }
 
-// ── PROGRESS BAR ─────────────────────────────────────────────────────────────
 class SICProgressBar extends StatelessWidget {
   final double value; // 0.0 - 1.0
   final Color color;

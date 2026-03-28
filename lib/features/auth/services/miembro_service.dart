@@ -1,38 +1,25 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/miembros/services/miembro_service.dart
-//  CRUD Firestore + generador de código de sobre
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/firebase_collections.dart';
 import '../models/miembro_model.dart';
 
-// ── Providers ─────────────────────────────────────────────────────────────
-
-/// Servicio singleton
 final miembroServiceProvider = Provider<MiembroService>((ref) {
   return MiembroService(FirebaseFirestore.instance);
 });
 
-/// Stream de TODOS los miembros (activos e inactivos)
 final miembrosStreamProvider = StreamProvider<List<MiembroModel>>((ref) {
   return ref.watch(miembroServiceProvider).streamMiembros();
 });
 
-/// Stream solo de miembros ACTIVOS
 final miembrosActivosStreamProvider = StreamProvider<List<MiembroModel>>((ref) {
   return ref.watch(miembroServiceProvider).streamMiembrosActivos();
 });
 
-/// Un miembro por ID
 final miembroByIdProvider =
     StreamProvider.family<MiembroModel?, String>((ref, uid) {
   return ref.watch(miembroServiceProvider).streamMiembroById(uid);
 });
-
-// ── Estado del formulario (crear/editar) ──────────────────────────────────
 
 class MiembroFormNotifier extends StateNotifier<AsyncValue<void>> {
   MiembroFormNotifier(this._service) : super(const AsyncValue.data(null));
@@ -95,8 +82,6 @@ final miembroFormProvider =
   return MiembroFormNotifier(ref.watch(miembroServiceProvider));
 });
 
-// ── Servicio ──────────────────────────────────────────────────────────────
-
 class MiembroService {
   MiembroService(this._db);
 
@@ -105,7 +90,6 @@ class MiembroService {
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(FirebaseCollections.usuarios);
 
-  // ── Stream de todos los miembros ────────────────────────────────────────
   Stream<List<MiembroModel>> streamMiembros() {
     return _col
         .orderBy(FirebaseCollections.nombreCompleto)
@@ -114,7 +98,6 @@ class MiembroService {
             snap.docs.map((d) => MiembroModel.fromFirestore(d)).toList());
   }
 
-  // ── Stream solo activos ─────────────────────────────────────────────────
   Stream<List<MiembroModel>> streamMiembrosActivos() {
     return _col
         .where(FirebaseCollections.activo, isEqualTo: true)
@@ -124,7 +107,6 @@ class MiembroService {
             snap.docs.map((d) => MiembroModel.fromFirestore(d)).toList());
   }
 
-  // ── Stream de un miembro por ID ─────────────────────────────────────────
   Stream<MiembroModel?> streamMiembroById(String uid) {
     return _col.doc(uid).snapshots().map((doc) {
       if (!doc.exists) return null;
@@ -132,7 +114,6 @@ class MiembroService {
     });
   }
 
-  // ── Crear miembro ───────────────────────────────────────────────────────
   Future<String> crearMiembro({
     required String nombreCompleto,
     required String correo,
@@ -144,7 +125,7 @@ class MiembroService {
     final now         = DateTime.now();
     final codigoSobre = await _generarCodigoSobre();
 
-    final docRef = _col.doc(); // auto-ID
+    final docRef = _col.doc(); 
     final miembro = MiembroModel(
       uid:            docRef.id,
       nombreCompleto: nombreCompleto,
@@ -163,13 +144,11 @@ class MiembroService {
     return docRef.id;
   }
 
-  // ── Actualizar miembro ──────────────────────────────────────────────────
   Future<void> actualizarMiembro(MiembroModel miembro) async {
     final updated = miembro.copyWith(updatedAt: DateTime.now());
     await _col.doc(miembro.uid).update(updated.toMap());
   }
 
-  // ── Dar de baja / alta (toggle activo) ─────────────────────────────────
   Future<void> toggleActivo(String uid, bool valorActual) async {
     await _col.doc(uid).update({
       FirebaseCollections.activo:    !valorActual,
@@ -177,8 +156,6 @@ class MiembroService {
     });
   }
 
-  // ── Generador de código de sobre ────────────────────────────────────────
-  /// Genera un código tipo SIC-0001, SIC-0002 …
   Future<String> _generarCodigoSobre() async {
     final snap = await _col
         .orderBy(FirebaseCollections.codigoSobre, descending: true)

@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/gastos/models/gasto_model.dart
-//  MODELO TEMPORAL — será reemplazado por el módulo de gastos
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GastoModel {

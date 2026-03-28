@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/miembros/screens/miembro_detail_screen.dart
-//  Ver perfil + editar + historial de aportes del miembro
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +8,6 @@ import '../../../core/constants/firebase_collections.dart';
 import '../../auth/models/miembro_model.dart';
 import '../../auth/services/miembro_service.dart';
 
-// ── Provider: aportes (ingresos) del miembro ─────────────────────────────
 final _aportesProvider =
     StreamProvider.family<List<Map<String, dynamic>>, String>((ref, uid) {
   return FirebaseFirestore.instance
@@ -24,10 +18,6 @@ final _aportesProvider =
       .snapshots()
       .map((snap) => snap.docs.map((d) => {...d.data(), 'id': d.id}).toList());
 });
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Pantalla principal
-// ─────────────────────────────────────────────────────────────────────────────
 
 class MiembroDetailScreen extends ConsumerStatefulWidget {
   const MiembroDetailScreen({super.key, required this.miembroId});
@@ -106,7 +96,6 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
     );
   }
 
-  // ── Formulario de edición (bottom sheet) ─────────────────────────────────
   void _mostrarFormularioEditar(MiembroModel miembro) {
     showModalBottomSheet(
       context: context,
@@ -119,10 +108,6 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Tab: Perfil
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _PerfilTab extends StatelessWidget {
   const _PerfilTab({required this.miembro});
@@ -172,7 +157,6 @@ class _PerfilTab extends StatelessWidget {
 
           const SizedBox(height: 28),
 
-          // Datos del perfil
           _InfoCard(children: [
             _InfoRow(Icons.badge,       'Código sobre',    miembro.codigoSobre),
             _InfoRow(Icons.email,       'Correo',          miembro.correo),
@@ -186,10 +170,6 @@ class _PerfilTab extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Tab: Historial de Aportes
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _AportesTab extends ConsumerWidget {
   const _AportesTab({required this.miembroId});
@@ -221,13 +201,11 @@ class _AportesTab extends ConsumerWidget {
           );
         }
 
-        // Calcular total
         final total = aportes.fold<double>(
             0, (sum, a) => sum + ((a[FirebaseCollections.monto] ?? 0) as num).toDouble());
 
         return Column(
           children: [
-            // Resumen total
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
@@ -293,9 +271,6 @@ class _AportesTab extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Bottom Sheet: Editar miembro
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _EditarMiembroSheet extends ConsumerStatefulWidget {
   const _EditarMiembroSheet({required this.miembro});
@@ -441,9 +416,6 @@ class _EditarMiembroSheetState extends ConsumerState<_EditarMiembroSheet> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Widgets auxiliares reutilizables
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _StatusChip extends StatelessWidget {
   const _StatusChip({required this.activo});

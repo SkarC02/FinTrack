@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/auth/services/auth_service.dart
-//  Servicio de autenticación con Firebase Auth + Firestore
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,17 +8,11 @@ import '../models/app_user.dart';
 
 part 'auth_service.g.dart';
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  PROVIDERS
-// ══════════════════════════════════════════════════════════════════════════════
-
-// Stream del usuario de Firebase Auth (sesión activa)
 @riverpod
 Stream<User?> authState(AuthStateRef ref) {
   return FirebaseAuth.instance.authStateChanges();
 }
 
-// Usuario actual de la app (con datos de Firestore)
 @riverpod
 Stream<AppUser?> currentUser(CurrentUserRef ref) {
   final authUser = ref.watch(authStateProvider).valueOrNull;
@@ -36,9 +25,6 @@ Stream<AppUser?> currentUser(CurrentUserRef ref) {
       .map((snap) => snap.exists ? AppUser.fromFirestore(snap) : null);
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  AUTH SERVICE
-// ══════════════════════════════════════════════════════════════════════════════
 @riverpod
 AuthService authService(AuthServiceRef ref) => AuthService();
 
@@ -46,7 +32,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // ── Login con email/contraseña ────────────────────────────────────────────
   Future<AppUser> signInWithEmail({
     required String email,
     required String password,
@@ -70,7 +55,6 @@ class AuthService {
         );
       }
 
-      // Verificar que el usuario esté activo
       final appUser = AppUser.fromFirestore(doc);
       if (!appUser.activo) {
         await _auth.signOut();
@@ -86,7 +70,6 @@ class AuthService {
     }
   }
 
-  // ── Registro nuevo usuario ────────────────────────────────────────────────
   Future<AppUser> registerWithEmail({
     required String email,
     required String password,
@@ -96,7 +79,6 @@ class AuthService {
     required UserRole rol,
   }) async {
     try {
-      // 1. Crear usuario en Firebase Auth
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
@@ -104,10 +86,8 @@ class AuthService {
 
       final uid = credential.user!.uid;
 
-      // 2. Generar código de sobre único
       final codigoSobre = await _generarCodigoSobre();
 
-      // 3. Crear documento en Firestore
       final appUser = AppUser(
         uid: uid,
         nombreCompleto: nombreCompleto.trim(),
@@ -126,7 +106,6 @@ class AuthService {
           .doc(uid)
           .set(appUser.toFirestore());
 
-      // 4. Actualizar displayName en Auth
       await credential.user!.updateDisplayName(nombreCompleto.trim());
 
       return appUser;
@@ -135,23 +114,18 @@ class AuthService {
     }
   }
 
-  // ── Cerrar sesión ─────────────────────────────────────────────────────────
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // ── Recuperar contraseña ──────────────────────────────────────────────────
   Future<void> sendPasswordResetEmail(String email) async {
     await _auth.sendPasswordResetEmail(email: email.trim());
   }
 
-  // ── Usuario actual (sync) ─────────────────────────────────────────────────
   User? get currentFirebaseUser => _auth.currentUser;
   String? get currentUid => _auth.currentUser?.uid;
 
-  // ── Generar código de sobre único ─────────────────────────────────────────
   Future<String> _generarCodigoSobre() async {
-    // Contar documentos existentes para generar número secuencial
     final snap = await _db
         .collection(FirebaseCollections.usuarios)
         .count()
@@ -161,7 +135,6 @@ class AuthService {
     return '${AppConstants.codigoSobrePrefix}${numero.toString().padLeft(4, '0')}';
   }
 
-  // ── Mensaje de error legible ──────────────────────────────────────────────
   static String errorMessage(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':

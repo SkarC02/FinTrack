@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/miembros/screens/miembro_nuevo_screen.dart
-//  Formulario para crear un nuevo miembro
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -57,7 +52,6 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      // Ir al detalle del miembro recién creado
       context.pushReplacement(
         AppRoutes.miembroDetalle.replaceFirst(':id', uid),
       );
@@ -98,7 +92,6 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
           padding: const EdgeInsets.all(20),
           children: [
 
-            // ── Nombre ────────────────────────────────────────────────────
             TextFormField(
               controller: _nombre,
               decoration: const InputDecoration(
@@ -111,7 +104,6 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Correo ────────────────────────────────────────────────────
             TextFormField(
               controller: _correo,
               decoration: const InputDecoration(
@@ -122,7 +114,6 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Teléfono ──────────────────────────────────────────────────
             TextFormField(
               controller: _telefono,
               decoration: const InputDecoration(
@@ -133,7 +124,6 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Dirección ─────────────────────────────────────────────────
             TextFormField(
               controller: _direccion,
               decoration: const InputDecoration(
@@ -144,7 +134,6 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Rol ───────────────────────────────────────────────────────
             DropdownButtonFormField<String>(
               initialValue: _rol,
               decoration: const InputDecoration(
@@ -161,7 +150,6 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Fecha de membresía ────────────────────────────────────────
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_month),
@@ -179,7 +167,6 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
 
             const SizedBox(height: 32),
 
-            // ── Botón guardar ─────────────────────────────────────────────
             FilledButton.icon(
               onPressed: isLoading ? null : _guardar,
               icon: isLoading

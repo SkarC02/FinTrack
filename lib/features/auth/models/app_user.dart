@@ -1,14 +1,8 @@
-// ═══════════════════════════════════════════════════════════════════════════
-//  lib/features/auth/models/app_user.dart
-//  Modelo de usuario de la aplicación
-// ═══════════════════════════════════════════════════════════════════════════
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/firebase_collections.dart';
 
-// ── ENUM DE ROLES ─────────────────────────────────────────────────────────────
 enum UserRole {
   admin,
   tesorero,
@@ -18,7 +12,6 @@ enum UserRole {
 
   String get label => AppConstants.rolesLabel[name] ?? name;
 
-  // Permisos por rol
   bool get puedeVerDashboard => this != miembro;
   bool get puedeRegistrarIngresos =>
       this == admin || this == tesorero || this == secretario;
@@ -41,7 +34,6 @@ enum UserRole {
   }
 }
 
-// ── MODELO APP USER ───────────────────────────────────────────────────────────
 class AppUser extends Equatable {
   final String uid;
   final String nombreCompleto;
@@ -69,7 +61,6 @@ class AppUser extends Equatable {
     this.updatedAt,
   });
 
-  // ── Iniciales para el avatar ───────────────────────────────────────────────
   String get initials {
     final parts = nombreCompleto.trim().split(' ');
     if (parts.length >= 2) {
@@ -78,7 +69,6 @@ class AppUser extends Equatable {
     return nombreCompleto.isNotEmpty ? nombreCompleto[0].toUpperCase() : '?';
   }
 
-  // ── fromFirestore ──────────────────────────────────────────────────────────
   factory AppUser.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
     return AppUser(
@@ -97,7 +87,6 @@ class AppUser extends Equatable {
     );
   }
 
-  // ── toFirestore ────────────────────────────────────────────────────────────
   Map<String, dynamic> toFirestore() {
     return {
       FirebaseCollections.uId: uid,
@@ -117,7 +106,6 @@ class AppUser extends Equatable {
     };
   }
 
-  // ── copyWith ───────────────────────────────────────────────────────────────
   AppUser copyWith({
     String? nombreCompleto,
     String? telefono,
