@@ -50,7 +50,7 @@ class SICKpiCard extends StatelessWidget {
             letterSpacing: 1.2, color: AppColors.textMuted,
           )),
           const SizedBox(height: 2),
-          Text(value, style: TextStyle(
+          Text(value, style: const TextStyle(
             fontFamily: 'DMSans', fontSize: 17,
             fontWeight: FontWeight.w500, color: AppColors.textDark,
           )),
