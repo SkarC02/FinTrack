@@ -201,7 +201,7 @@ class _RolBadge extends StatelessWidget {
       AppConstants.rolPastor     => cs.tertiaryContainer,
       AppConstants.rolTesorero   => cs.secondaryContainer,
       AppConstants.rolSecretario => cs.secondaryContainer,
-      _                          => cs.surfaceVariant,
+      _                          => cs.surfaceContainerHighest,
     };
   }
 

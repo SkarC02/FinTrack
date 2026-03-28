@@ -146,7 +146,7 @@ class _MiembroNuevoScreenState extends ConsumerState<MiembroNuevoScreen> {
 
             // ── Rol ───────────────────────────────────────────────────────
             DropdownButtonFormField<String>(
-              value: _rol,
+              initialValue: _rol,
               decoration: const InputDecoration(
                 labelText: 'Rol',
                 prefixIcon: Icon(Icons.manage_accounts),

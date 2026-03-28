@@ -412,7 +412,7 @@ class _EditarMiembroSheetState extends ConsumerState<_EditarMiembroSheet> {
 
               // Dropdown rol
               DropdownButtonFormField<String>(
-                value: _rol,
+                initialValue: _rol,
                 decoration: const InputDecoration(labelText: 'Rol'),
                 items: AppConstants.roles
                     .map((r) => DropdownMenuItem(
