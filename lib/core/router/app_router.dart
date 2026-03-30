@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sic_app/features/miembros/screens/miembro_nuevo_screen.dart';
 
 import '../../features/auth/services/auth_service.dart';
 import '../../features/auth/screens/login_screen.dart';
@@ -44,13 +45,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
-          // Dashboard
+
           GoRoute(
             path: AppRoutes.dashboard,
             builder: (context, state) => const DashboardScreen(),
           ),
 
-          // Ingresos
           GoRoute(
             path: AppRoutes.ingresos,
             builder: (context, state) => const HistorialIngresosScreen(),
@@ -68,14 +68,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Miembros
           GoRoute(
             path: AppRoutes.miembros,
             builder: (context, state) => const MiembrosListScreen(),
             routes: [
               GoRoute(
                 path: 'nuevo',
-                builder: (context, state) => const MiembroDetailScreen(miembroId: '',),
+                builder: (context, state) => const MiembroNuevoScreen(),
               ),
               GoRoute(
                 path: 'detalle/:id',

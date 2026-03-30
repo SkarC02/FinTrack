@@ -6,7 +6,7 @@ import '../../../core/constants/app_routes.dart';
 import '../../auth/models/miembro_model.dart';
 import '../../auth/services/miembro_service.dart';
 
-final _busquedaProvider = StateProvider<String>((ref) => '');
+final _busquedaProvider    = StateProvider<String>((ref) => '');
 final _soloActivosProvider = StateProvider<bool>((ref) => true);
 
 class MiembrosListScreen extends ConsumerWidget {
@@ -57,13 +57,10 @@ class MiembrosListScreen extends ConsumerWidget {
                   ref.read(_busquedaProvider.notifier).state = v,
             ),
           ),
-
           Expanded(
             child: stream.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
-              error: (e, _) =>
-                  Center(child: Text('Error: $e')),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error: $e')),
               data: (miembros) {
                 final filtrados = busqueda.isEmpty
                     ? miembros
@@ -74,35 +71,28 @@ class MiembrosListScreen extends ConsumerWidget {
                       }).toList();
 
                 if (filtrados.isEmpty) {
-                  return const Center(
-                    child: Text('No se encontraron miembros'),
-                  );
+                  return const Center(child: Text('No se encontraron miembros'));
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: filtrados.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(height: 8),
-                  itemBuilder: (context, i) =>
-                      _MiembroTile(miembro: filtrados[i]),
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, i) => _MiembroTile(miembro: filtrados[i]),
                 );
               },
             ),
           ),
         ],
       ),
-
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.miembroNuevo),
+        onPressed: () => context.go(AppRoutes.miembroNuevo),
         icon: const Icon(Icons.person_add),
         label: const Text('Nuevo'),
       ),
     );
   }
 }
-
 
 class _MiembroTile extends ConsumerWidget {
   const _MiembroTile({required this.miembro});
@@ -123,8 +113,7 @@ class _MiembroTile extends ConsumerWidget {
         ),
       ),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: CircleAvatar(
           backgroundColor: miembro.activo
               ? colorScheme.primaryContainer
@@ -141,7 +130,6 @@ class _MiembroTile extends ConsumerWidget {
             ),
           ),
         ),
-
         title: Text(
           miembro.nombreCompleto,
           style: const TextStyle(fontWeight: FontWeight.w600),
@@ -151,7 +139,6 @@ class _MiembroTile extends ConsumerWidget {
           style: Theme.of(context).textTheme.bodySmall,
           overflow: TextOverflow.ellipsis,
         ),
-
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -160,17 +147,13 @@ class _MiembroTile extends ConsumerWidget {
             _ToggleActivoButton(miembro: miembro),
           ],
         ),
-
-        onTap: () {
-          final route = AppRoutes.miembroDetalle
-              .replaceFirst(':id', miembro.uid);
-          context.push(route);
-        },
+        onTap: () => context.go(
+          AppRoutes.miembroDetalle.replaceFirst(':id', miembro.uid),
+        ),
       ),
     );
   }
 }
-
 
 class _RolBadge extends StatelessWidget {
   const _RolBadge({required this.rol});
@@ -219,52 +202,69 @@ class _RolBadge extends StatelessWidget {
   }
 }
 
-class _ToggleActivoButton extends ConsumerWidget {
+class _ToggleActivoButton extends ConsumerStatefulWidget {
   const _ToggleActivoButton({required this.miembro});
   final MiembroModel miembro;
 
-  Future<void> _confirmar(BuildContext context, WidgetRef ref) async {
-    final accion = miembro.activo ? 'dar de baja' : 'reactivar';
+  @override
+  ConsumerState<_ToggleActivoButton> createState() => _ToggleActivoButtonState();
+}
+
+class _ToggleActivoButtonState extends ConsumerState<_ToggleActivoButton> {
+  Future<void> _confirmar() async {
+    final accion    = widget.miembro.activo ? 'dar de baja' : 'reactivar';
+    final eraActivo = widget.miembro.activo;
+
     final confirma = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text('¿Deseas $accion a ${miembro.nombreCompleto}?'),
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('¿Deseas $accion a ${widget.miembro.nombreCompleto}?'),
         content: Text(
-          miembro.activo
+          eraActivo
               ? 'El miembro pasará a estado inactivo.'
               : 'El miembro volverá a estar activo.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => dialogContext.pop(false),
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(miembro.activo ? 'Dar de baja' : 'Reactivar'),
+            onPressed: () => dialogContext.pop(true),
+            child: Text(eraActivo ? 'Dar de baja' : 'Reactivar'),
           ),
         ],
       ),
     );
 
-    if (confirma == true) {
-      await ref
-          .read(miembroFormProvider.notifier)
-          .toggleActivo(miembro.uid, miembro.activo);
-    }
+    if (confirma != true) return;
+
+    final scaffoldMsg = ScaffoldMessenger.of(context);
+
+    await ref
+        .read(miembroFormProvider.notifier)
+        .toggleActivo(widget.miembro.uid, eraActivo);
+
+    if (!mounted) return;
+
+    scaffoldMsg.showSnackBar(SnackBar(
+      content: Text(eraActivo ? 'Miembro dado de baja' : 'Miembro reactivado'),
+      backgroundColor: eraActivo ? Colors.orange : Colors.green,
+    ));
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return IconButton(
-      tooltip: miembro.activo ? 'Dar de baja' : 'Reactivar',
+      tooltip: widget.miembro.activo ? 'Dar de baja' : 'Reactivar',
       icon: Icon(
-        miembro.activo ? Icons.person_off : Icons.person,
-        color: miembro.activo
+        widget.miembro.activo ? Icons.person_off : Icons.person,
+        color: widget.miembro.activo
             ? Theme.of(context).colorScheme.error
             : Theme.of(context).colorScheme.primary,
       ),
-      onPressed: () => _confirmar(context, ref),
+      onPressed: _confirmar,
     );
   }
 }
