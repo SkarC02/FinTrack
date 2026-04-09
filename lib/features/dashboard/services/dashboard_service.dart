@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sic_app/features/gastos/screens/models/gasto_model.dart';
+import 'package:sic_app/features/gastos/models/gasto_model.dart';
 
 import '../../../core/constants/firebase_collections.dart';
 import '../../ingresos/models/ingreso_model.dart';
