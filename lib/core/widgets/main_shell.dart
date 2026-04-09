@@ -13,7 +13,8 @@ class MainShell extends StatelessWidget {
     (icon: Icons.attach_money_rounded, label: 'Ingresos', path: AppRoutes.ingresos),
     (icon: Icons.receipt_long_rounded, label: 'Gastos',   path: AppRoutes.gastos),
     (icon: Icons.bar_chart_rounded,    label: 'Reportes', path: AppRoutes.reportes),
-    (icon: Icons.more_horiz_rounded,   label: 'Más',      path: AppRoutes.miembros),
+    (icon: Icons.group_add_outlined,   label: 'Miembros',      path: AppRoutes.miembros),
+    (icon: Icons.person_outline,       label: 'Perfil',   path: '/perfil'),
   ];
 
   int _currentIndex(BuildContext context) {

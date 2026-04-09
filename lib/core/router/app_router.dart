@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sic_app/features/auth/screens/perfil_screen.dart';
 
 import '../../features/auth/services/auth_service.dart';
 import '../../features/auth/screens/login_screen.dart';
@@ -104,6 +105,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
+          //Perfil
+          GoRoute(
+          path: '/perfil',
+            builder: (context, state) => const PerfilScreen(),
+            ),
+
+            
           //Reportes
           GoRoute(
             path: AppRoutes.reportes,
