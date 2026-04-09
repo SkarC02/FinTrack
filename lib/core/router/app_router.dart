@@ -8,8 +8,8 @@ import '../../features/auth/screens/register_screen.dart';
 import '../../features/ingresos/screens/ingreso_form_screen.dart';
 import '../../features/ingresos/screens/historial_ingresos_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
-// import '../../features/gastos/screens/gasto_form_screen.dart';
-// import '../../features/gastos/screens/historial_gastos_screen.dart';
+import '../../features/gastos/screens/gasto_form_screen.dart';
+import '../../features/gastos/screens/historial_gastos_screen.dart';
 import '../../features/miembros/screens/miembros_list_screen.dart';
 import '../../features/miembros/screens/miembro_detail_screen.dart';
 import '../../features/reportes/screens/reportes_screen.dart';
@@ -23,7 +23,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.login,
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull != null;
-      final isPublicRoute = state.matchedLocation == AppRoutes.login ||
+      final isPublicRoute =
+          state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
 
       if (!isLoggedIn && !isPublicRoute) return AppRoutes.login;
@@ -39,6 +40,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.register,
         builder: (context, state) => const RegisterScreen(),
       ),
+
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
@@ -73,9 +75,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: 'nuevo',
-                builder: (context, state) => const MiembroDetailScreen(
-                  miembroId: '',
-                ),
+                builder: (context, state) => const MiembroDetailScreen(miembroId: '',),
               ),
               GoRoute(
                 path: 'detalle/:id',
@@ -87,11 +87,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
 
           // Gastos
-          // GoRoute(
-          //   path: AppRoutes.gastos,
-          //   builder: (context, state) => const HistorialGastosScreen(),
-          // ),
+          GoRoute(
+            path: AppRoutes.gastos,
+            builder: (context, state) => const HistorialGastosScreen(),
+            routes: [
+              GoRoute(
+                path: 'nuevo',
+                builder: (context, state) => const GastoFormScreen(),
+              ),
+              GoRoute(
+                path: 'editar/:id',
+                builder: (context, state) => GastoFormScreen(
+                  gastoId: state.pathParameters['id'],
+                ),
+              ),
+            ],
+          ),
 
+          //Reportes
           GoRoute(
             path: AppRoutes.reportes,
             builder: (context, state) => const ReportesScreen(),

@@ -4,40 +4,46 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  static const Color gold = Color(0xFFC9A84C);
-  static const Color goldLight = Color(0xFFE8C97A);
-  static const Color goldDim = Color(0xFF8B6F2E);
-  static const Color goldGlow = Color(0x26C9A84C); // 15% opacity
+  // Azul eléctrico (color principal)
+  static const Color gold           = Color(0xFF3B82F6);
+  static const Color goldLight      = Color(0xFF60A5FA);
+  static const Color goldDim        = Color(0xFF2563EB);
+  static const Color goldGlow       = Color(0x263B82F6);
 
-  static const Color dark = Color(0xFF1A1510);
-  static const Color dark2 = Color(0xFF22190F);
-  static const Color dark3 = Color(0xFF2C2418);
-  static const Color dark4 = Color(0xFF3D3220);
-  static const Color dark5 = Color(0xFF4E4130);
+  // Fondos oscuros
+  static const Color dark           = Color(0xFF0F172A);
+  static const Color dark2          = Color(0xFF1E293B);
+  static const Color dark3          = Color(0xFF263347);
+  static const Color dark4          = Color(0xFF334155);
+  static const Color dark5          = Color(0xFF475569);
 
-  static const Color cream = Color(0xFFFAF6EE);
-  static const Color cream2 = Color(0xFFF3EDE0);
-  static const Color white = Color(0xFFFFFFFF);
+  // Fondos claros
+  static const Color cream          = Color(0xFFF1F5F9);
+  static const Color cream2         = Color(0xFFE2E8F0);
+  static const Color white          = Color(0xFFFFFFFF);
 
-  static const Color textDark = Color(0xFF2C2418);
-  static const Color textMuted = Color(0xFF7A6548);
-  static const Color textLight = Color(0xFFFAF6EE);
-  static const Color textMutedLight = Color(0xFF9A876A);
+  // Texto
+  static const Color textDark       = Color(0xFF0F172A);
+  static const Color textMuted      = Color(0xFF64748B);
+  static const Color textLight      = Color(0xFFFFFFFF);
+  static const Color textMutedLight = Color(0xFF94A3B8);
 
-  static const Color green = Color(0xFF27694A);
-  static const Color greenLight = Color(0xFF2ECC71);
-  static const Color greenBg = Color(0xFFEBF8F1);
-  static const Color red = Color(0xFFC0392B);
-  static const Color redLight = Color(0xFFE74C3C);
-  static const Color redBg = Color(0xFFFDF0EE);
-  static const Color blue = Color(0xFF2C5F8A);
-  static const Color blueBg = Color(0xFFEAF2FA);
-  static const Color purple = Color(0xFF8E44AD);
-  static const Color orange = Color(0xFFE67E22);
-  static const Color teal = Color(0xFF16A085);
+  // Semánticos
+  static const Color green          = Color(0xFF16A34A);
+  static const Color greenLight     = Color(0xFF22C55E);
+  static const Color greenBg        = Color(0xFFDCFCE7);
+  static const Color red            = Color(0xFFDC2626);
+  static const Color redLight       = Color(0xFFEF4444);
+  static const Color redBg          = Color(0xFFFEE2E2);
+  static const Color blue           = Color(0xFF2563EB);
+  static const Color blueBg         = Color(0xFFDBEAFE);
+  static const Color purple         = Color(0xFF7C3AED);
+  static const Color orange         = Color(0xFFF97316);
+  static const Color teal           = Color(0xFF0D9488);
 
-  static const Color borderDark = Color(0x2DC9A84C);
-  static const Color borderLight = Color(0xFFEDE5D0);
+  // Bordes
+  static const Color borderDark     = Color(0x263B82F6);
+  static const Color borderLight    = Color(0xFFCBD5E1);
 }
 
 
