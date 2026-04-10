@@ -211,7 +211,7 @@ class _AportesTab extends ConsumerWidget {
                   Text(
                     'Total aportado',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      color: Colors.white,
                     ),
                   ),
                   Text(

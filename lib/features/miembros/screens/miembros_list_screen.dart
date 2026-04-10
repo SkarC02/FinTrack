@@ -17,8 +17,7 @@ class MiembrosListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final soloActivos = ref.watch(_soloActivosProvider);
     final busqueda    = ref.watch(_busquedaProvider).toLowerCase();
-    final rolAsync    = ref.watch(rolActualProvider);
-    final rol         = rolAsync.valueOrNull ?? '';
+    final rol         = ref.watch(rolActualProvider).valueOrNull ?? '';
 
     final puedeGestionar = rol == AppConstants.rolAdmin ||
         rol == AppConstants.rolSecretario;
@@ -94,13 +93,6 @@ class MiembrosListScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: puedeGestionar
-          ? FloatingActionButton.extended(
-              onPressed: () => context.go(AppRoutes.miembroNuevo),
-              icon: const Icon(Icons.person_add),
-              label: const Text('Nuevo'),
-            )
-          : null,
     );
   }
 }
