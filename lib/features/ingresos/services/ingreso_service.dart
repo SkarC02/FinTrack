@@ -1,5 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sic_app/core/constants/firebase_collections.dart';
 import '../models/ingreso_model.dart';
+
+// ── Provider ──────────────────────────────────────────
+final ingresoServiceProvider = Provider<IngresoService>((ref) {
+  return IngresoService.instance;
+});
 
 class IngresoService {
   IngresoService._();
@@ -22,9 +29,10 @@ class IngresoService {
     return IngresoModel.fromFirestore(doc);
   }
 
+  // Trae todos los ingresos ordenados por fecha
   Stream<List<IngresoModel>> streamTodos() {
     return _ref
-        .orderBy('fecha', descending: true)
+        .orderBy(FirebaseCollections.fecha, descending: true)
         .snapshots()
         .map((snap) => snap.docs.map(IngresoModel.fromFirestore).toList());
   }

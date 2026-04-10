@@ -1,663 +1,370 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import '../../auth/services/auth_service.dart';
+import '../../auth/models/app_user.dart';
+
+import '../../../core/constants/app_routes.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/currency_utils.dart';
+import '../../../core/utils/date_utils.dart';
+import '../../../core/widgets/sic_widgets.dart';
 import '../models/ingreso_model.dart';
 import '../services/ingreso_service.dart';
-import '../../../core/constants/app_routes.dart';
 
-class HistorialIngresosScreen extends StatefulWidget {
+final _todosIngresosProvider = StreamProvider<List<IngresoModel>>((ref) {
+  final user = ref.watch(currentUserProvider).valueOrNull;
+
+  // Si es miembro solo trae sus propios ingresos
+  if (user?.rol == UserRole.miembro) {
+    return ref.watch(ingresoServiceProvider).streamPorMiembro(user!.uid);
+  }
+
+  // Si es staff trae todos
+  return ref.watch(ingresoServiceProvider).streamTodos();
+});
+
+class HistorialIngresosScreen extends ConsumerStatefulWidget {
   const HistorialIngresosScreen({super.key});
 
   @override
-  State<HistorialIngresosScreen> createState() =>
+  ConsumerState<HistorialIngresosScreen> createState() =>
       _HistorialIngresosScreenState();
 }
 
-class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
-  TipoIngreso? _tipoFiltro;
+class _HistorialIngresosScreenState
+    extends ConsumerState<HistorialIngresosScreen> {
+  TipoIngreso? _filtroTipo;
   DateTime? _desde;
   DateTime? _hasta;
-  String _busqueda = '';
 
-  final _fmt = NumberFormat('#,##0.00');
-  final _fmtFecha = DateFormat('dd/MM/yyyy');
+  static const _iconos = {
+    'diezmo':   (Icons.volunteer_activism,       AppColors.gold),
+    'ofrenda':  (Icons.favorite_outline,         AppColors.green),
+    'donacion': (Icons.card_giftcard_outlined,   AppColors.blue),
+    'primicia': (Icons.star_outline_rounded,     AppColors.orange),
+    'misiones': (Icons.flight_outlined,          AppColors.teal),
+  };
+
+  // ── Filtrado en el cliente ────────────────────────────
+  List<IngresoModel> _aplicarFiltros(List<IngresoModel> todos) {
+    return todos.where((i) {
+      if (_filtroTipo != null && i.tipo != _filtroTipo) return false;
+      if (_desde != null) {
+        final desdeInicio =
+            DateTime(_desde!.year, _desde!.month, _desde!.day, 0, 0, 0);
+        if (i.fecha.isBefore(desdeInicio)) return false;
+      }
+      if (_hasta != null) {
+        final hastaFin =
+            DateTime(_hasta!.year, _hasta!.month, _hasta!.day, 23, 59, 59);
+        if (i.fecha.isAfter(hastaFin)) return false;
+      }
+      return true;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final todosAsync = ref.watch(_todosIngresosProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
-        title: const Text('Historial de Ingresos'),
-        centerTitle: true,
+        backgroundColor: AppColors.dark,
+        title: const Text('Ingresos',
+            style: TextStyle(color: AppColors.white)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _mostrarFiltros,
-            tooltip: 'Filtros',
+            icon: const Icon(Icons.add_rounded, color: AppColors.gold),
+            onPressed: () => context.go(AppRoutes.ingresoNuevo),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('${AppRoutes.ingresos}/nuevo'),
-        icon: const Icon(Icons.add),
-        label: const Text('Nuevo'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: TextField(
-              onChanged: (v) => setState(() => _busqueda = v.toLowerCase()),
-              decoration: const InputDecoration(
-                hintText: 'Buscar por miembro...',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
-
-          if (_tipoFiltro != null || _desde != null || _hasta != null)
-            _FiltrosActivos(
-              tipo: _tipoFiltro,
-              desde: _desde,
-              hasta: _hasta,
-              onClear: _limpiarFiltros,
-            ),
-
-          const SizedBox(height: 8),
-
-          Expanded(
-            child: StreamBuilder<List<IngresoModel>>(
-              stream: _buildStream(),
-              builder: (ctx, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snap.hasError) {
-                  return Center(
-                      child: Text('Error: ${snap.error}',
-                          style: TextStyle(color: cs.error)));
-                }
-
-                final todos = snap.data ?? [];
-                final lista = _busqueda.isEmpty
-                    ? todos
-                    : todos
-                        .where((i) =>
-                            i.memberName.toLowerCase().contains(_busqueda))
-                        .toList();
-
-                if (lista.isEmpty) {
-                  return _EmptyState(tipoFiltro: _tipoFiltro);
-                }
-
-                final total = lista.fold(0.0, (s, i) => s + i.monto);
-
-                return Column(
-                  children: [
-                    // Resumen total
-                    _ResumenBanner(total: total, cantidad: lista.length),
-
-                    // Lista
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                        itemCount: lista.length,
-                        itemBuilder: (ctx, i) => _IngresoTile(
-                          ingreso: lista[i],
-                          fmtMonto: _fmt,
-                          fmtFecha: _fmtFecha,
-                          onTap: () => _abrirDetalle(lista[i]),
-                        ),
+      body: todosAsync.when(
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.gold)),
+        error: (e, _) => Center(child: Text('Error: $e')),
+        data: (todos) {
+          final filtrados = _aplicarFiltros(todos);
+          return Column(children: [
+            _buildKPIs(todos, filtrados),
+            _buildFiltros(),
+            _buildDateRange(),
+            Expanded(
+              child: filtrados.isEmpty
+                  ? SICEmptyState(
+                      emoji: '💰',
+                      title: 'Sin ingresos en este filtro',
+                      subtitle:
+                          'Intenta cambiar el tipo o el rango de fecha',
+                      action: ElevatedButton.icon(
+                        onPressed: () => setState(() {
+                          _filtroTipo = null;
+                          _desde = null;
+                          _hasta = null;
+                        }),
+                        icon: const Icon(Icons.clear_rounded),
+                        label: const Text('Limpiar filtros'),
                       ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(14),
+                      itemCount: filtrados.length,
+                      itemBuilder: (ctx, i) =>
+                          _buildIngresoTile(filtrados[i]),
                     ),
-                  ],
-                );
-              },
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Stream<List<IngresoModel>> _buildStream() {
-    if (_desde != null && _hasta != null) {
-      return IngresoService.instance.streamPorRango(_desde!, _hasta!);
-    }
-    if (_tipoFiltro != null) {
-      return IngresoService.instance.streamPorTipo(_tipoFiltro!);
-    }
-    final now = DateTime.now();
-    return IngresoService.instance.streamPorMes(now.year, now.month);
-  }
-
-  Future<void> _mostrarFiltros() async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _FiltrosSheet(
-        tipoInicial: _tipoFiltro,
-        desdeInicial: _desde,
-        hastaInicial: _hasta,
-        onAplicar: (tipo, desde, hasta) {
-          setState(() {
-            _tipoFiltro = tipo;
-            _desde = desde;
-            _hasta = hasta;
-          });
-          Navigator.pop(context);
+          ]);
         },
       ),
     );
   }
 
-  void _limpiarFiltros() {
-    setState(() {
-      _tipoFiltro = null;
-      _desde = null;
-      _hasta = null;
-    });
-  }
-
-  void _abrirDetalle(IngresoModel ingreso) {
-    context.go('${AppRoutes.ingresos}/editar/${ingreso.id}');
-  }
-}
-
-class _IngresoTile extends StatelessWidget {
-  final IngresoModel ingreso;
-  final NumberFormat fmtMonto;
-  final DateFormat fmtFecha;
-  final VoidCallback onTap;
-
-  const _IngresoTile({
-    required this.ingreso,
-    required this.fmtMonto,
-    required this.fmtFecha,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Card(
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        leading: CircleAvatar(
-          backgroundColor: _colorTipo(ingreso.tipo).withOpacity(0.15),
-          child: Text(
-            ingreso.memberName.isNotEmpty
-                ? ingreso.memberName[0].toUpperCase()
-                : '?',
-            style: TextStyle(
-              color: _colorTipo(ingreso.tipo),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                ingreso.memberName.isEmpty ? 'Sin nombre' : ingreso.memberName,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text(
-              'L ${fmtMonto.format(ingreso.monto)}',
-              style: TextStyle(
-                color: cs.secondary,
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-              ),
-            ),
-          ],
-        ),
-        subtitle: Row(
-          children: [
-            _TipoBadge(tipo: ingreso.tipo),
-            const SizedBox(width: 8),
-            Text(
-              fmtFecha.format(ingreso.fecha),
-              style:
-                  TextStyle(fontSize: 11, color: cs.onSurface.withOpacity(0.5)),
-            ),
-            const Spacer(),
-            Icon(_iconMetodo(ingreso.metodo),
-                size: 14, color: cs.onSurface.withOpacity(0.4)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _colorTipo(TipoIngreso t) {
-    switch (t) {
-      case TipoIngreso.diezmo:
-        return Colors.green;
-      case TipoIngreso.ofrenda:
-        return Colors.blue;
-      case TipoIngreso.donacion:
-        return Colors.purple;
-      case TipoIngreso.primicia:
-        return Colors.orange;
-      case TipoIngreso.misiones:
-        return Colors.teal;
-    }
-  }
-
-  IconData _iconMetodo(MetodoPago m) {
-    switch (m) {
-      case MetodoPago.efectivo:
-        return Icons.payments_outlined;
-      case MetodoPago.transferencia:
-        return Icons.account_balance_outlined;
-      case MetodoPago.cheque:
-        return Icons.receipt_outlined;
-    }
-  }
-}
-
-class _TipoBadge extends StatelessWidget {
-  final TipoIngreso tipo;
-  const _TipoBadge({required this.tipo});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _color();
+  // ── KPIs ──────────────────────────────────────────────
+  Widget _buildKPIs(
+      List<IngresoModel> todos, List<IngresoModel> filtrados) {
+    final totalTodos = todos.fold(0.0, (s, i) => s + i.monto);
+    final totalFiltrado = filtrados.fold(0.0, (s, i) => s + i.monto);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Text(
-        tipo.label,
-        style:
-            TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700),
-      ),
+      padding: const EdgeInsets.all(14),
+      color: AppColors.dark,
+      child: Row(children: [
+        Expanded(
+            child: _miniKpi('TOTAL',
+                CurrencyUtils.formatShort(totalTodos), AppColors.gold)),
+        const SizedBox(width: 12),
+        Expanded(
+            child: _miniKpi(
+                'REGISTROS', '${todos.length}', AppColors.greenLight)),
+        const SizedBox(width: 12),
+        Expanded(
+            child: _miniKpi('FILTRADO',
+                CurrencyUtils.formatShort(totalFiltrado), AppColors.goldLight)),
+      ]),
     );
   }
 
-  Color _color() {
-    switch (tipo) {
-      case TipoIngreso.diezmo:
-        return Colors.green;
-      case TipoIngreso.ofrenda:
-        return Colors.blue;
-      case TipoIngreso.donacion:
-        return Colors.purple;
-      case TipoIngreso.primicia:
-        return Colors.orange;
-      case TipoIngreso.misiones:
-        return Colors.teal;
-    }
-  }
-}
-
-class _ResumenBanner extends StatelessWidget {
-  final double total;
-  final int cantidad;
-  const _ResumenBanner({required this.total, required this.cantidad});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final fmt = NumberFormat('#,##0.00');
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: cs.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: cs.primary.withOpacity(0.25)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.trending_up, color: cs.primary, size: 20),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Total del período',
-                  style: TextStyle(
-                      fontSize: 11, color: cs.onSurface.withOpacity(0.6))),
-              Text('L ${fmt.format(total)}',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: cs.primary)),
-            ],
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: cs.primary.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '$cantidad registros',
-              style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w700, color: cs.primary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FiltrosActivos extends StatelessWidget {
-  final TipoIngreso? tipo;
-  final DateTime? desde;
-  final DateTime? hasta;
-  final VoidCallback onClear;
-
-  const _FiltrosActivos({
-    this.tipo,
-    this.desde,
-    this.hasta,
-    required this.onClear,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final fmt = DateFormat('dd/MM/yy');
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: Row(
-        children: [
-          const Icon(Icons.filter_alt, size: 14),
-          const SizedBox(width: 6),
-          if (tipo != null) _Chip(label: tipo!.label),
-          if (desde != null && hasta != null)
-            _Chip(label: '${fmt.format(desde!)} - ${fmt.format(hasta!)}'),
-          const Spacer(),
-          GestureDetector(
-            onTap: onClear,
-            child: Text('Limpiar',
-                style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  const _Chip({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      margin: const EdgeInsets.only(right: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: cs.primary.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 11, color: cs.primary, fontWeight: FontWeight.w600)),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final TipoIngreso? tipoFiltro;
-  const _EmptyState({this.tipoFiltro});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.inbox_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
-          const SizedBox(height: 16),
-          Text(
-            tipoFiltro != null
-                ? 'Sin ${tipoFiltro!.label.toLowerCase()}s registrados'
-                : 'Sin ingresos este mes',
-            style: TextStyle(
-                fontSize: 15,
-                color:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
-          ),
-          const SizedBox(height: 8),
-          Text('Presiona + para agregar uno',
-              style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withOpacity(0.35))),
-        ],
-      ),
-    );
-  }
-}
-
-class _FiltrosSheet extends StatefulWidget {
-  final TipoIngreso? tipoInicial;
-  final DateTime? desdeInicial;
-  final DateTime? hastaInicial;
-  final Function(TipoIngreso?, DateTime?, DateTime?) onAplicar;
-
-  const _FiltrosSheet({
-    this.tipoInicial,
-    this.desdeInicial,
-    this.hastaInicial,
-    required this.onAplicar,
-  });
-
-  @override
-  State<_FiltrosSheet> createState() => _FiltrosSheetState();
-}
-
-class _FiltrosSheetState extends State<_FiltrosSheet> {
-  TipoIngreso? _tipo;
-  DateTime? _desde;
-  DateTime? _hasta;
-  final _fmt = DateFormat('dd/MM/yyyy');
-
-  @override
-  void initState() {
-    super.initState();
-    _tipo = widget.tipoInicial;
-    _desde = widget.desdeInicial;
-    _hasta = widget.hastaInicial;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+  Widget _miniKpi(String label, String value, Color color) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Handle
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: cs.onSurface.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          Text('Filtrar por tipo',
-              style: TextStyle(
-                  fontSize: 12,
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 8,
                   fontWeight: FontWeight.w800,
-                  color: cs.primary,
-                  letterSpacing: 1.2)),
-          const SizedBox(height: 10),
-
-          // Tipo chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _FiltroChip(
-                label: 'Todos',
-                selected: _tipo == null,
-                onTap: () => setState(() => _tipo = null),
-              ),
-              ...TipoIngreso.values.map((t) => _FiltroChip(
-                    label: t.label,
-                    selected: _tipo == t,
-                    onTap: () => setState(() => _tipo = t),
-                  )),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-          Text('Rango de fechas',
+                  letterSpacing: 1.2,
+                  color: AppColors.textMutedLight)),
+          const SizedBox(height: 2),
+          Text(value,
               style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: cs.primary,
-                  letterSpacing: 1.2)),
-          const SizedBox(height: 10),
+                  fontFamily: 'monospace',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: color)),
+        ],
+      );
 
-          Row(
-            children: [
-              Expanded(
-                child: _DateButton(
-                  label: _desde != null ? _fmt.format(_desde!) : 'Desde',
-                  onTap: () => _pickDate(true),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _DateButton(
-                  label: _hasta != null ? _fmt.format(_hasta!) : 'Hasta',
-                  onTap: () => _pickDate(false),
-                ),
-              ),
-            ],
+  // ── Filtro por tipo ───────────────────────────────────
+  Widget _buildFiltros() {
+    return Container(
+      height: 46,
+      color: AppColors.white,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        children: [
+          // Botón "Todos"
+          _chipFiltro(
+            label: 'Todos',
+            isSelected: _filtroTipo == null,
+            onTap: () => setState(() => _filtroTipo = null),
           ),
-
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: () => widget.onAplicar(_tipo, _desde, _hasta),
-              child: const Text('Aplicar filtros'),
-            ),
-          ),
+          ...TipoIngreso.values.map((tipo) => _chipFiltro(
+                label: tipo.label,
+                isSelected: _filtroTipo == tipo,
+                onTap: () => setState(() => _filtroTipo = tipo),
+              )),
         ],
       ),
     );
   }
 
-  Future<void> _pickDate(bool esDesde) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate:
-          esDesde ? (_desde ?? DateTime.now()) : (_hasta ?? DateTime.now()),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        if (esDesde)
-          _desde = picked;
-        else
-          _hasta = picked;
-      });
-    }
-  }
-}
-
-class _FiltroChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  const _FiltroChip(
-      {required this.label, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+  Widget _chipFiltro({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         decoration: BoxDecoration(
-          color: selected ? cs.primary : cs.surface,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppColors.gold : Colors.transparent,
           border: Border.all(
-            color: selected ? cs.primary : cs.outline.withOpacity(0.3),
-            width: selected ? 2 : 1,
+              color: isSelected ? AppColors.gold : AppColors.borderLight,
+              width: 1.5),
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: isSelected ? AppColors.white : AppColors.textMuted,
           ),
         ),
-        child: Text(label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-              color: selected ? cs.onPrimary : cs.onSurface,
-            )),
       ),
     );
   }
-}
 
-class _DateButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  const _DateButton({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).inputDecorationTheme.fillColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: cs.outline.withOpacity(0.3)),
+  // ── Filtro por rango de fecha ─────────────────────────
+  Widget _buildDateRange() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+      child: Row(children: [
+        const Icon(Icons.calendar_today_rounded,
+            size: 14, color: AppColors.textMuted),
+        const SizedBox(width: 6),
+        _datePicker(
+          label: _desde != null ? SICDateUtils.format(_desde!) : 'Desde',
+          onPick: (d) => setState(() => _desde = d),
         ),
-        child: Row(
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child:
+              Text('—', style: TextStyle(color: AppColors.textMuted)),
+        ),
+        _datePicker(
+          label: _hasta != null ? SICDateUtils.format(_hasta!) : 'Hasta',
+          onPick: (d) => setState(() => _hasta = d),
+        ),
+        const Spacer(),
+        if (_desde != null || _hasta != null)
+          GestureDetector(
+            onTap: () => setState(() {
+              _desde = null;
+              _hasta = null;
+            }),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.redBg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Limpiar',
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.red),
+              ),
+            ),
+          ),
+      ]),
+    );
+  }
+
+  Widget _datePicker({
+    required String label,
+    required Function(DateTime) onPick,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now(),
+          builder: (ctx, child) => Theme(
+            data: ThemeData.light().copyWith(
+              colorScheme:
+                  const ColorScheme.light(primary: AppColors.gold),
+            ),
+            child: child!,
+          ),
+        );
+        if (picked != null) onPick(picked);
+      },
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.cream,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark),
+        ),
+      ),
+    );
+  }
+
+  // ── Tile de ingreso ───────────────────────────────────
+  Widget _buildIngresoTile(IngresoModel ingreso) {
+    final ico = _iconos[ingreso.tipo.value] ??
+        (Icons.attach_money_rounded, AppColors.gold);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        leading: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: (ico.$2 as Color).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Icon(ico.$1 as IconData,
+              color: ico.$2 as Color, size: 20),
+        ),
+        title: Text(
+          ingreso.memberName,
+          style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textDark),
+        ),
+        subtitle: Text(
+          '${ingreso.tipo.label} · ${SICDateUtils.format(ingreso.fecha)} · ${ingreso.metodo.label}',
+          style: const TextStyle(
+              fontSize: 11, color: AppColors.textMuted),
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Icon(Icons.calendar_today, size: 14, color: cs.primary),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontSize: 12)),
+            Text(
+              '+${CurrencyUtils.format(ingreso.monto)}',
+              style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: AppColors.green),
+            ),
+            const SICStatusChip(
+                label: 'Registrado',
+                bg: Color(0xFFDCFCE7),
+                fg: Color(0xFF15803D)),
           ],
         ),
+        onTap: () => context.go('/ingresos/editar/${ingreso.id}'),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sic_app/features/gastos/models/gasto_model.dart';
 
 import '../../../core/constants/firebase_collections.dart';
 import '../../ingresos/models/ingreso_model.dart';
@@ -51,78 +50,90 @@ class DashboardService {
     final inicio = DateTime(ahora.year, ahora.month, 1);
     final fin    = DateTime(ahora.year, ahora.month + 1, 0, 23, 59, 59);
 
-    return _db
+    // Stream de ingresos del mes
+    final ingresosStream = _db
         .collection(FirebaseCollections.ingresos)
         .where(FirebaseCollections.fecha,
             isGreaterThanOrEqualTo: Timestamp.fromDate(inicio))
         .where(FirebaseCollections.fecha,
             isLessThanOrEqualTo: Timestamp.fromDate(fin))
         .orderBy(FirebaseCollections.fecha, descending: true)
-        .snapshots()
-        .asyncMap((ingresosSnap) async {
-      final ingresos = ingresosSnap.docs
-          .map(IngresoModel.fromFirestore)
-          .toList();
+        .snapshots();
 
-      double totalIngresos = 0;
-      final ingresosPorTipo = <String, double>{};
-      for (final i in ingresos) {
-        totalIngresos += i.monto;
-        final key = i.tipo.value;
-        ingresosPorTipo[key] = (ingresosPorTipo[key] ?? 0) + i.monto;
-      }
+    // Stream de gastos del mes
+    final gastosStream = _db
+        .collection(FirebaseCollections.gastos)
+        .where(FirebaseCollections.fecha,
+            isGreaterThanOrEqualTo: Timestamp.fromDate(inicio))
+        .where(FirebaseCollections.fecha,
+            isLessThanOrEqualTo: Timestamp.fromDate(fin))
+        .orderBy(FirebaseCollections.fecha, descending: true)
+        .snapshots();
 
-      List<GastoModel> gastos = [];
-      double totalGastos = 0;
-      final gastosPorCategoria = <String, double>{};
+    // Combinar ambos streams para que cualquier cambio
+    // en ingresos O gastos actualice el dashboard
+    return ingresosStream.asyncExpand((ingresosSnap) {
+      return gastosStream.map((gastosSnap) {
+        // ── Procesar ingresos ──────────────────────────
+        final ingresos = ingresosSnap.docs
+            .map(IngresoModel.fromFirestore)
+            .toList();
 
-      try {
-        final gastosSnap = await _db
-            .collection(FirebaseCollections.gastos)
-            .where(FirebaseCollections.fecha,
-                isGreaterThanOrEqualTo: Timestamp.fromDate(inicio))
-            .where(FirebaseCollections.fecha,
-                isLessThanOrEqualTo: Timestamp.fromDate(fin))
-            .orderBy(FirebaseCollections.fecha, descending: true)
-            .get();
+        double totalIngresos = 0;
+        final ingresosPorTipo = <String, double>{};
+        for (final i in ingresos) {
+          totalIngresos += i.monto;
+          final key = i.tipo.value;
+          ingresosPorTipo[key] = (ingresosPorTipo[key] ?? 0) + i.monto;
+        }
 
-        gastos = gastosSnap.docs.map(GastoModel.fromFirestore).toList();
+        // ── Procesar gastos ────────────────────────────
+        final gastos = gastosSnap.docs
+            .map(GastoModel.fromFirestore)
+            .toList();
+
+        double totalGastos = 0;
+        final gastosPorCategoria = <String, double>{};
         for (final g in gastos) {
           totalGastos += g.monto;
           gastosPorCategoria[g.categoria] =
               (gastosPorCategoria[g.categoria] ?? 0) + g.monto;
         }
-      } catch (_) {
-      }
 
-      int totalMiembros = 0;
-      try {
-        final snap = await _db
-            .collection(FirebaseCollections.usuarios)
-            .where(FirebaseCollections.activo, isEqualTo: true)
-            .count()
-            .get();
-        totalMiembros = snap.count ?? 0;
-      } catch (_) {}
+        // ── Diezmadores ────────────────────────────────
+        final diezmadores = ingresos
+            .where((i) => i.tipo == TipoIngreso.diezmo)
+            .map((i) => i.memberId)
+            .toSet()
+            .length;
 
-      final diezmadores = ingresos
-          .where((i) => i.tipo == TipoIngreso.diezmo)
-          .map((i) => i.memberId)
-          .toSet()
-          .length;
+        // ── Últimas transacciones combinadas ──────────
+        // Mezclar ingresos y gastos ordenados por fecha
+        final ultimosIngresos = ingresos.take(5).toList();
+        final ultimosGastos   = gastos.take(3).toList();
 
-      return DashboardResumen(
-        totalIngresos:               totalIngresos,
-        totalGastos:                 totalGastos,
-        saldo:                       totalIngresos - totalGastos,
-        totalMiembros:               totalMiembros,
-        diezmadores:                 diezmadores,
-        ingresosPorTipo:             ingresosPorTipo,
-        gastosPorCategoria:          gastosPorCategoria,
-        ultimasTransaccionesIngreso: ingresos.take(5).toList(),
-        ultimasTransaccionesGasto:   gastos.take(3).toList(),
-      );
+        return DashboardResumen(
+          totalIngresos:               totalIngresos,
+          totalGastos:                 totalGastos,
+          saldo:                       totalIngresos - totalGastos,
+          totalMiembros:               0, // se carga aparte
+          diezmadores:                 diezmadores,
+          ingresosPorTipo:             ingresosPorTipo,
+          gastosPorCategoria:          gastosPorCategoria,
+          ultimasTransaccionesIngreso: ultimosIngresos,
+          ultimasTransaccionesGasto:   ultimosGastos,
+        );
+      });
     });
+  }
+
+  // Stream de total de miembros activos en tiempo real
+  Stream<int> streamTotalMiembros() {
+    return _db
+        .collection(FirebaseCollections.usuarios)
+        .where(FirebaseCollections.activo, isEqualTo: true)
+        .snapshots()
+        .map((snap) => snap.docs.length);
   }
 
   Future<List<Map<String, dynamic>>> datosGraficaMensual(

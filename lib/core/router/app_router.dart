@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sic_app/features/miembros/screens/miembro_nuevo_screen.dart';
 import 'package:sic_app/features/auth/screens/perfil_screen.dart';
 
 import '../../features/auth/services/auth_service.dart';
+import '../../features/auth/models/app_user.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/ingresos/screens/ingreso_form_screen.dart';
@@ -24,12 +26,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.login,
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull != null;
-      final isPublicRoute =
-          state.matchedLocation == AppRoutes.login ||
+      final isPublicRoute = state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
 
+      // Si no está autenticado va al login
       if (!isLoggedIn && !isPublicRoute) return AppRoutes.login;
+
+      // Si está autenticado va al dashboard
       if (isLoggedIn && isPublicRoute) return AppRoutes.dashboard;
+
+      // Solo verificar rol si está autenticado
+      if (isLoggedIn) {
+        final user = ref.read(currentUserProvider).valueOrNull;
+
+        // Esperar a que cargue el usuario
+        if (user == null) return null;
+
+        if (user.rol == UserRole.miembro) {
+          const rutasPermitidas = [
+            AppRoutes.ingresos,
+            '/perfil',
+          ];
+
+          final tieneAcceso =
+              rutasPermitidas.any((r) => state.matchedLocation.startsWith(r));
+
+          if (!tieneAcceso) return AppRoutes.ingresos;
+        }
+      }
+
       return null;
     },
     routes: [
@@ -41,7 +66,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.register,
         builder: (context, state) => const RegisterScreen(),
       ),
-
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
@@ -75,10 +99,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const MiembrosListScreen(),
             routes: [
               GoRoute(
-                path: 'nuevo',
-                builder: (context, state) => const MiembroDetailScreen(miembroId: '',),
-              ),
-              GoRoute(
                 path: 'detalle/:id',
                 builder: (context, state) => MiembroDetailScreen(
                   miembroId: state.pathParameters['id']!,
@@ -105,14 +125,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          //Perfil
+          // Perfil
           GoRoute(
-          path: '/perfil',
+            path: '/perfil',
             builder: (context, state) => const PerfilScreen(),
-            ),
+          ),
 
-            
-          //Reportes
+          // Reportes
           GoRoute(
             path: AppRoutes.reportes,
             builder: (context, state) => const ReportesScreen(),

@@ -4,6 +4,8 @@ import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic_app/features/gastos/models/gasto_model.dart';
+import '../../../core/constants/app_constants.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_utils.dart';
@@ -47,8 +49,10 @@ class _ReportesScreenState extends ConsumerState<ReportesScreen> {
     _dataRows = [];
 
     try {
-      final inicio = Timestamp.fromDate(_desde);
-      final fin = Timestamp.fromDate(_hasta.add(const Duration(days: 1)));
+      final inicio =
+          Timestamp.fromDate(DateTime(_desde.year, _desde.month, _desde.day));
+      final fin = Timestamp.fromDate(
+          DateTime(_hasta.year, _hasta.month, _hasta.day, 23, 59, 59));
 
       if (_reporteSeleccionado == 'Ingresos por tipo') {
         _headers = ['Fecha', 'Tipo', 'Cantidad'];
@@ -111,25 +115,60 @@ class _ReportesScreenState extends ConsumerState<ReportesScreen> {
           _dataRows.add([dia, CurrencyUtils.format(total)]);
           _totalGeneral += total;
         });
-      }
+      } else if (_reporteSeleccionado == 'Gastos generales por mes') {
+        _headers = [
+          'Fecha',
+          'Descripción',
+          'Total Gasto'
+        ]; 
+        final snap = await FirebaseFirestore.instance
+            .collection('gastos')
+            .where('fecha', isGreaterThanOrEqualTo: inicio)
+            .where('fecha', isLessThanOrEqualTo: fin)
+            .get();
 
-      // 4. REPORTE: Gastos (Simulados hasta que tengas la colección 'gastos')
-      else if (_reporteSeleccionado == 'Gastos por tipo') {
-        _headers = ['Tipo de Gasto', 'Monto'];
-        _dataRows = [
-          ['Mantenimiento', 'L. 0.00'],
-          ['Servicios', 'L. 0.00'],
-          ['Actividades', 'L. 0.00'],
-        ];
+        final docs = snap.docs.map((d) => GastoModel.fromFirestore(d)).toList();
+        docs.sort(
+            (a, b) => b.fecha.compareTo(a.fecha)); 
+
+        for (var g in docs) {
+          _dataRows.add([
+            SICDateUtils.format(g.fecha),
+            g.descripcion,
+            CurrencyUtils.format(g.monto)
+          ]);
+          _totalGeneral += g.monto;
+        }
+      } else if (_reporteSeleccionado == 'Gastos por tipo') {
+        _headers = ['Fecha', 'Tipo de Gasto', 'Monto'];
+        final snap = await FirebaseFirestore.instance
+            .collection('gastos')
+            .where('fecha', isGreaterThanOrEqualTo: inicio)
+            .where('fecha', isLessThanOrEqualTo: fin)
+            .get();
+
+        final docs = snap.docs.map((d) => GastoModel.fromFirestore(d)).toList();
+        docs.sort((a, b) => b.fecha.compareTo(a.fecha));
+
+        for (var g in docs) {
+          final tipoLabel =
+              AppConstants.categoriasGastoLabel[g.categoria] ?? g.categoria;
+          _dataRows.add([
+            SICDateUtils.format(g.fecha),
+            tipoLabel,
+            CurrencyUtils.format(g.monto)
+          ]);
+          _totalGeneral += g.monto;
+        }
       }
     } catch (e) {
       debugPrint('Error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // --- NUEVA FUNCIÓN PARA IMPRIMIR Y PDF ---
+  // -------------------------------------------------------
   Future<void> _imprimirReporte() async {
     if (_dataRows.isEmpty) return;
 
