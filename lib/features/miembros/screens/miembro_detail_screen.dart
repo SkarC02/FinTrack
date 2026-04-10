@@ -26,7 +26,8 @@ class MiembroDetailScreen extends ConsumerStatefulWidget {
   final String miembroId;
 
   @override
-  ConsumerState<MiembroDetailScreen> createState() => _MiembroDetailScreenState();
+  ConsumerState<MiembroDetailScreen> createState() =>
+      _MiembroDetailScreenState();
 }
 
 class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
@@ -48,15 +49,19 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
   @override
   Widget build(BuildContext context) {
     final miembroAsync = ref.watch(miembroByIdProvider(widget.miembroId));
-    final rol          = ref.watch(rolActualProvider).valueOrNull ?? '';
-    final puedeEditar  = rol == AppConstants.rolAdmin || rol == AppConstants.rolSecretario;
+    final rol = ref.watch(rolActualProvider).valueOrNull ?? '';
+
+    // Solo el admin puede editar el rol
+    final puedeEditar = rol == AppConstants.rolAdmin;
 
     return miembroAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
       data: (miembro) {
         if (miembro == null) {
-          return const Scaffold(body: Center(child: Text('Miembro no encontrado')));
+          return const Scaffold(
+              body: Center(child: Text('Miembro no encontrado')));
         }
         return _buildScaffold(miembro, puedeEditar);
       },
@@ -72,10 +77,11 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
         ),
         title: Text(miembro.nombreCompleto),
         actions: [
+          // Solo aparece el botón si es admin
           if (puedeEditar)
             IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Editar',
+              icon: const Icon(Icons.manage_accounts_rounded),
+              tooltip: 'Cambiar Rol',
               onPressed: () => _mostrarFormularioEditar(miembro),
             ),
         ],
@@ -90,7 +96,7 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
       body: TabBarView(
         controller: _tabs,
         children: [
-          _PerfilTab(miembro: miembro),
+          _PerfilTab(miembro: miembro, puedeEditar: puedeEditar),
           _AportesTab(miembroId: miembro.uid),
         ],
       ),
@@ -111,8 +117,9 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
 }
 
 class _PerfilTab extends StatelessWidget {
-  const _PerfilTab({required this.miembro});
+  const _PerfilTab({required this.miembro, required this.puedeEditar});
   final MiembroModel miembro;
+  final bool puedeEditar;
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +135,8 @@ class _PerfilTab extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 42,
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
                   child: Text(
                     miembro.nombreCompleto.isNotEmpty
                         ? miembro.nombreCompleto[0].toUpperCase()
@@ -136,7 +144,8 @@ class _PerfilTab extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      color:
+                          Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ),
@@ -153,13 +162,39 @@ class _PerfilTab extends StatelessWidget {
           ),
           const SizedBox(height: 28),
           _InfoCard(children: [
-            _InfoRow(Icons.badge,           'Código sobre',  miembro.codigoSobre),
-            _InfoRow(Icons.email,           'Correo',        miembro.correo),
-            _InfoRow(Icons.phone,           'Teléfono',      miembro.telefono),
-            _InfoRow(Icons.home,            'Dirección',     miembro.direccion.isEmpty ? '—' : miembro.direccion),
-            _InfoRow(Icons.manage_accounts, 'Rol',           miembro.rolLabel),
-            _InfoRow(Icons.calendar_month,  'Miembro desde', fmt.format(miembro.fechaMembresia)),
+            _InfoRow(Icons.badge, 'Código sobre', miembro.codigoSobre),
+            _InfoRow(Icons.email, 'Correo', miembro.correo),
+            _InfoRow(Icons.phone, 'Teléfono', miembro.telefono),
+            _InfoRow(Icons.home, 'Dirección',
+                miembro.direccion.isEmpty ? '—' : miembro.direccion),
+            _InfoRow(Icons.manage_accounts, 'Rol', miembro.rolLabel),
+            _InfoRow(Icons.calendar_month, 'Miembro desde',
+                fmt.format(miembro.fechaMembresia)),
           ]),
+
+          // Solo el admin ve la sección de cambio de rol
+          if (puedeEditar) ...[
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.withOpacity(0.3)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.admin_panel_settings_rounded,
+                    color: Colors.amber, size: 18),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Solo los administradores pueden cambiar el rol del miembro.',
+                    style: TextStyle(fontSize: 12, color: Colors.amber),
+                  ),
+                ),
+              ]),
+            ),
+          ],
         ],
       ),
     );
@@ -174,7 +209,8 @@ class _AportesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final aportesAsync = ref.watch(_aportesProvider(miembroId));
     final fmtFecha = DateFormat('dd/MM/yyyy');
-    final fmtMonto = NumberFormat('${AppConstants.simboloMoneda} #,##0.00', 'es_HN');
+    final fmtMonto =
+        NumberFormat('${AppConstants.simboloMoneda} #,##0.00', 'es_HN');
 
     return aportesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -194,7 +230,10 @@ class _AportesTab extends ConsumerWidget {
         }
 
         final total = aportes.fold<double>(
-            0, (sum, a) => sum + ((a[FirebaseCollections.monto] ?? 0) as num).toDouble());
+            0,
+            (sum, a) =>
+                sum +
+                ((a[FirebaseCollections.monto] ?? 0) as num).toDouble());
 
         return Column(
           children: [
@@ -210,16 +249,18 @@ class _AportesTab extends ConsumerWidget {
                 children: [
                   Text(
                     'Total aportado',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
-                    ),
+                    style:
+                        Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: Colors.white,
+                            ),
                   ),
                   Text(
                     fmtMonto.format(total),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style:
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                   ),
                 ],
               ),
@@ -230,18 +271,25 @@ class _AportesTab extends ConsumerWidget {
                 itemCount: aportes.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (_, i) {
-                  final a     = aportes[i];
-                  final tipo  = a[FirebaseCollections.tipo] as String? ?? '';
-                  final monto = ((a[FirebaseCollections.monto] ?? 0) as num).toDouble();
-                  final fecha = (a[FirebaseCollections.fecha] as Timestamp?)?.toDate();
+                  final a = aportes[i];
+                  final tipo =
+                      a[FirebaseCollections.tipo] as String? ?? '';
+                  final monto =
+                      ((a[FirebaseCollections.monto] ?? 0) as num)
+                          .toDouble();
+                  final fecha =
+                      (a[FirebaseCollections.fecha] as Timestamp?)
+                          ?.toDate();
 
                   return ListTile(
                     leading: const Icon(Icons.attach_money),
                     title: Text(
                       AppConstants.tiposIngresoLabel[tipo] ?? tipo,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style:
+                          const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    subtitle: Text(fecha != null ? fmtFecha.format(fecha) : '—'),
+                    subtitle: Text(
+                        fecha != null ? fmtFecha.format(fecha) : '—'),
                     trailing: Text(
                       fmtMonto.format(monto),
                       style: TextStyle(
@@ -281,8 +329,8 @@ class _EditarRolSheetState extends ConsumerState<_EditarRolSheet> {
     final updated = widget.miembro.copyWith(rol: _rol);
 
     final scaffoldMsg = ScaffoldMessenger.of(context);
-    final errorColor  = Theme.of(context).colorScheme.error;
-    final nav         = Navigator.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
+    final nav = Navigator.of(context);
 
     final ok = await ref
         .read(miembroFormProvider.notifier)
@@ -303,15 +351,24 @@ class _EditarRolSheetState extends ConsumerState<_EditarRolSheet> {
 
     return Padding(
       padding: EdgeInsets.only(
-        left: 20, right: 20, top: 20,
+        left: 20,
+        right: 20,
+        top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Editar rol de ${widget.miembro.nombreCompleto}',
-              style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'Cambiar rol de ${widget.miembro.nombreCompleto}',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Solo los administradores pueden realizar este cambio.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 20),
           DropdownButtonFormField<String>(
             value: _rol,
@@ -332,10 +389,11 @@ class _EditarRolSheetState extends ConsumerState<_EditarRolSheet> {
             onPressed: isLoading ? null : _guardar,
             child: isLoading
                 ? const SizedBox(
-                    height: 20, width: 20,
+                    height: 20,
+                    width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Guardar'),
+                : const Text('Guardar Cambio de Rol'),
           ),
         ],
       ),
@@ -357,9 +415,11 @@ class _StatusChip extends StatelessWidget {
         size: 16,
         color: activo ? cs.onSecondaryContainer : cs.onErrorContainer,
       ),
-      backgroundColor: activo ? cs.secondaryContainer : cs.errorContainer,
+      backgroundColor:
+          activo ? cs.secondaryContainer : cs.errorContainer,
       labelStyle: TextStyle(
-        color: activo ? cs.onSecondaryContainer : cs.onErrorContainer,
+        color:
+            activo ? cs.onSecondaryContainer : cs.onErrorContainer,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -376,7 +436,8 @@ class _InfoCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        side: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -401,7 +462,8 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        Icon(icon,
+            size: 20, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -410,7 +472,8 @@ class _InfoRow extends StatelessWidget {
               Text(label,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline)),
-              Text(value, style: Theme.of(context).textTheme.bodyMedium),
+              Text(value,
+                  style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
         ),

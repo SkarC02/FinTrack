@@ -39,14 +39,13 @@ class _HistorialIngresosScreenState
   DateTime? _hasta;
 
   static const _iconos = {
-    'diezmo':   (Icons.volunteer_activism,       AppColors.gold),
-    'ofrenda':  (Icons.favorite_outline,         AppColors.green),
-    'donacion': (Icons.card_giftcard_outlined,   AppColors.blue),
-    'primicia': (Icons.star_outline_rounded,     AppColors.orange),
-    'misiones': (Icons.flight_outlined,          AppColors.teal),
+    'diezmo':   (Icons.volunteer_activism,     AppColors.gold),
+    'ofrenda':  (Icons.favorite_outline,       AppColors.green),
+    'donacion': (Icons.card_giftcard_outlined, AppColors.blue),
+    'primicia': (Icons.star_outline_rounded,   AppColors.orange),
+    'misiones': (Icons.flight_outlined,        AppColors.teal),
   };
 
-  // ── Filtrado en el cliente ────────────────────────────
   List<IngresoModel> _aplicarFiltros(List<IngresoModel> todos) {
     return todos.where((i) {
       if (_filtroTipo != null && i.tipo != _filtroTipo) return false;
@@ -68,13 +67,20 @@ class _HistorialIngresosScreenState
   Widget build(BuildContext context) {
     final todosAsync = ref.watch(_todosIngresosProvider);
 
+    // Obtener usuario actual para controlar permisos
+    final user = ref.watch(currentUserProvider).valueOrNull;
+    final esMiembro = user?.rol == UserRole.miembro;
+
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(
         backgroundColor: AppColors.dark,
-        title: const Text('Ingresos',
-            style: TextStyle(color: AppColors.white)),
+        title: Text(
+          esMiembro ? 'Mis Aportes' : 'Ingresos',
+          style: const TextStyle(color: AppColors.white),
+        ),
         actions: [
+          // Todos pueden registrar un ingreso nuevo
           IconButton(
             icon: const Icon(Icons.add_rounded, color: AppColors.gold),
             onPressed: () => context.go(AppRoutes.ingresoNuevo),
@@ -95,24 +101,36 @@ class _HistorialIngresosScreenState
               child: filtrados.isEmpty
                   ? SICEmptyState(
                       emoji: '💰',
-                      title: 'Sin ingresos en este filtro',
-                      subtitle:
-                          'Intenta cambiar el tipo o el rango de fecha',
-                      action: ElevatedButton.icon(
-                        onPressed: () => setState(() {
-                          _filtroTipo = null;
-                          _desde = null;
-                          _hasta = null;
-                        }),
-                        icon: const Icon(Icons.clear_rounded),
-                        label: const Text('Limpiar filtros'),
-                      ),
+                      title: esMiembro
+                          ? 'Sin aportes registrados'
+                          : 'Sin ingresos en este filtro',
+                      subtitle: esMiembro
+                          ? 'Registra tu primer aporte'
+                          : 'Intenta cambiar el tipo o el rango de fecha',
+                      action: esMiembro
+                          ? ElevatedButton.icon(
+                              onPressed: () =>
+                                  context.go(AppRoutes.ingresoNuevo),
+                              icon: const Icon(Icons.add_rounded),
+                              label: const Text('Registrar Aporte'),
+                            )
+                          : ElevatedButton.icon(
+                              onPressed: () => setState(() {
+                                _filtroTipo = null;
+                                _desde = null;
+                                _hasta = null;
+                              }),
+                              icon: const Icon(Icons.clear_rounded),
+                              label: const Text('Limpiar filtros'),
+                            ),
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.all(14),
                       itemCount: filtrados.length,
-                      itemBuilder: (ctx, i) =>
-                          _buildIngresoTile(filtrados[i]),
+                      itemBuilder: (ctx, i) => _buildIngresoTile(
+                        filtrados[i],
+                        esMiembro: esMiembro,
+                      ),
                     ),
             ),
           ]);
@@ -140,7 +158,8 @@ class _HistorialIngresosScreenState
         const SizedBox(width: 12),
         Expanded(
             child: _miniKpi('FILTRADO',
-                CurrencyUtils.formatShort(totalFiltrado), AppColors.goldLight)),
+                CurrencyUtils.formatShort(totalFiltrado),
+                AppColors.goldLight)),
       ]),
     );
   }
@@ -174,7 +193,6 @@ class _HistorialIngresosScreenState
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         children: [
-          // Botón "Todos"
           _chipFiltro(
             label: 'Todos',
             isSelected: _filtroTipo == null,
@@ -200,11 +218,13 @@ class _HistorialIngresosScreenState
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.gold : Colors.transparent,
           border: Border.all(
-              color: isSelected ? AppColors.gold : AppColors.borderLight,
+              color:
+                  isSelected ? AppColors.gold : AppColors.borderLight,
               width: 1.5),
           borderRadius: BorderRadius.circular(99),
         ),
@@ -213,7 +233,8 @@ class _HistorialIngresosScreenState
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
-            color: isSelected ? AppColors.white : AppColors.textMuted,
+            color:
+                isSelected ? AppColors.white : AppColors.textMuted,
           ),
         ),
       ),
@@ -230,16 +251,20 @@ class _HistorialIngresosScreenState
             size: 14, color: AppColors.textMuted),
         const SizedBox(width: 6),
         _datePicker(
-          label: _desde != null ? SICDateUtils.format(_desde!) : 'Desde',
+          label: _desde != null
+              ? SICDateUtils.format(_desde!)
+              : 'Desde',
           onPick: (d) => setState(() => _desde = d),
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 8),
-          child:
-              Text('—', style: TextStyle(color: AppColors.textMuted)),
+          child: Text('—',
+              style: TextStyle(color: AppColors.textMuted)),
         ),
         _datePicker(
-          label: _hasta != null ? SICDateUtils.format(_hasta!) : 'Hasta',
+          label: _hasta != null
+              ? SICDateUtils.format(_hasta!)
+              : 'Hasta',
           onPick: (d) => setState(() => _hasta = d),
         ),
         const Spacer(),
@@ -250,8 +275,8 @@ class _HistorialIngresosScreenState
               _hasta = null;
             }),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.redBg,
                 borderRadius: BorderRadius.circular(8),
@@ -282,8 +307,8 @@ class _HistorialIngresosScreenState
           lastDate: DateTime.now(),
           builder: (ctx, child) => Theme(
             data: ThemeData.light().copyWith(
-              colorScheme:
-                  const ColorScheme.light(primary: AppColors.gold),
+              colorScheme: const ColorScheme.light(
+                  primary: AppColors.gold),
             ),
             child: child!,
           ),
@@ -310,7 +335,10 @@ class _HistorialIngresosScreenState
   }
 
   // ── Tile de ingreso ───────────────────────────────────
-  Widget _buildIngresoTile(IngresoModel ingreso) {
+  Widget _buildIngresoTile(
+    IngresoModel ingreso, {
+    required bool esMiembro,
+  }) {
     final ico = _iconos[ingreso.tipo.value] ??
         (Icons.attach_money_rounded, AppColors.gold);
 
@@ -364,7 +392,10 @@ class _HistorialIngresosScreenState
                 fg: Color(0xFF15803D)),
           ],
         ),
-        onTap: () => context.go('/ingresos/editar/${ingreso.id}'),
+        // Miembro no puede editar — onTap es null
+        onTap: esMiembro
+            ? null
+            : () => context.go('/ingresos/editar/${ingreso.id}'),
       ),
     );
   }
