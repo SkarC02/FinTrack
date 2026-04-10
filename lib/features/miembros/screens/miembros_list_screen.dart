@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/providers/rol_provider.dart';
 import '../../auth/models/miembro_model.dart';
 import '../../auth/services/miembro_service.dart';
 
@@ -16,6 +17,11 @@ class MiembrosListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final soloActivos = ref.watch(_soloActivosProvider);
     final busqueda    = ref.watch(_busquedaProvider).toLowerCase();
+    final rolAsync    = ref.watch(rolActualProvider);
+    final rol         = rolAsync.valueOrNull ?? '';
+
+    final puedeGestionar = rol == AppConstants.rolAdmin ||
+        rol == AppConstants.rolSecretario;
 
     final stream = soloActivos
         ? ref.watch(miembrosActivosStreamProvider)
@@ -78,25 +84,34 @@ class MiembrosListScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: filtrados.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, i) => _MiembroTile(miembro: filtrados[i]),
+                  itemBuilder: (context, i) => _MiembroTile(
+                    miembro: filtrados[i],
+                    puedeGestionar: puedeGestionar,
+                  ),
                 );
               },
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go(AppRoutes.miembroNuevo),
-        icon: const Icon(Icons.person_add),
-        label: const Text('Nuevo'),
-      ),
+      floatingActionButton: puedeGestionar
+          ? FloatingActionButton.extended(
+              onPressed: () => context.go(AppRoutes.miembroNuevo),
+              icon: const Icon(Icons.person_add),
+              label: const Text('Nuevo'),
+            )
+          : null,
     );
   }
 }
 
 class _MiembroTile extends ConsumerWidget {
-  const _MiembroTile({required this.miembro});
+  const _MiembroTile({
+    required this.miembro,
+    required this.puedeGestionar,
+  });
   final MiembroModel miembro;
+  final bool puedeGestionar;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -143,8 +158,10 @@ class _MiembroTile extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _RolBadge(rol: miembro.rol),
-            const SizedBox(width: 8),
-            _ToggleActivoButton(miembro: miembro),
+            if (puedeGestionar) ...[
+              const SizedBox(width: 8),
+              _ToggleActivoButton(miembro: miembro),
+            ],
           ],
         ),
         onTap: () => context.go(
