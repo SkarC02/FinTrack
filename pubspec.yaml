@@ -30,6 +30,8 @@ dependencies:
   equatable: ^2.0.5
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10
+  image_picker: ^1.2.1
+  firebase_storage: ^12.4.10
 
 dev_dependencies:
   flutter_test:
