@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../../core/constants/firebase_collections.dart';
 import '../../ingresos/models/ingreso_model.dart';
@@ -70,10 +71,19 @@ class DashboardService {
         .orderBy(FirebaseCollections.fecha, descending: true)
         .snapshots();
 
-    // Combinar ambos streams para que cualquier cambio
-    // en ingresos O gastos actualice el dashboard
-    return ingresosStream.asyncExpand((ingresosSnap) {
-      return gastosStream.map((gastosSnap) {
+    // ── Stream de miembros activos en tiempo real ─────
+    final miembrosStream = _db
+        .collection(FirebaseCollections.usuarios)
+        .where(FirebaseCollections.activo, isEqualTo: true)
+        .snapshots();
+
+    // Combinar los 3 streams con rxdart
+    return Rx.combineLatest3(
+      ingresosStream,
+      gastosStream,
+      miembrosStream,
+      (ingresosSnap, gastosSnap, miembrosSnap) {
+
         // ── Procesar ingresos ──────────────────────────
         final ingresos = ingresosSnap.docs
             .map(IngresoModel.fromFirestore)
@@ -100,6 +110,9 @@ class DashboardService {
               (gastosPorCategoria[g.categoria] ?? 0) + g.monto;
         }
 
+        // ── Total miembros activos en tiempo real ──────
+        final totalMiembros = miembrosSnap.docs.length;
+
         // ── Diezmadores ────────────────────────────────
         final diezmadores = ingresos
             .where((i) => i.tipo == TipoIngreso.diezmo)
@@ -107,24 +120,19 @@ class DashboardService {
             .toSet()
             .length;
 
-        // ── Últimas transacciones combinadas ──────────
-        // Mezclar ingresos y gastos ordenados por fecha
-        final ultimosIngresos = ingresos.take(5).toList();
-        final ultimosGastos   = gastos.take(3).toList();
-
         return DashboardResumen(
           totalIngresos:               totalIngresos,
           totalGastos:                 totalGastos,
           saldo:                       totalIngresos - totalGastos,
-          totalMiembros:               0, // se carga aparte
+          totalMiembros:               totalMiembros,
           diezmadores:                 diezmadores,
           ingresosPorTipo:             ingresosPorTipo,
           gastosPorCategoria:          gastosPorCategoria,
-          ultimasTransaccionesIngreso: ultimosIngresos,
-          ultimasTransaccionesGasto:   ultimosGastos,
+          ultimasTransaccionesIngreso: ingresos.take(5).toList(),
+          ultimasTransaccionesGasto:   gastos.take(3).toList(),
         );
-      });
-    });
+      },
+    );
   }
 
   // Stream de total de miembros activos en tiempo real
