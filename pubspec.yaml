@@ -30,6 +30,9 @@ dependencies:
   equatable: ^2.0.5
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10
+  image_picker: ^1.2.1
+  firebase_storage: ^12.4.10
+  firebase_messaging: ^15.2.10
 
 dev_dependencies:
   flutter_test:
@@ -38,12 +41,22 @@ dev_dependencies:
   build_runner: ^2.4.12
   riverpod_generator: ^2.4.3
   flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
 
 flutter:
   uses-material-design: true
   assets:
     - lib/core/assets/LogoFinTrack.png
     - lib/core/assets/logotipo.png
+
+flutter_native_splash:
+  color: "#FFFFFF" # fondo blanco
+  image: lib/core/assets/LogoFinTrack.png
+  android: true
+  ios: true
+  web: false
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
 
 flutter_launcher_icons:
   android: true
