@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sic_app/core/services/fcm_service.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/validators.dart';
@@ -312,7 +313,11 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
     );
 
     if (confirm == true) {
+      // Primero hacer signOut y luego limpiar el token
+      // para evitar que la actualización de Firestore
+      // dispare el router antes del logout
       await ref.read(authServiceProvider).signOut();
+      await FcmService.instance.limpiarToken();
     }
   }
 

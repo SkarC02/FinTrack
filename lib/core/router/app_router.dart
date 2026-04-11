@@ -19,6 +19,8 @@ import '../../features/reportes/screens/reportes_screen.dart';
 import '../constants/app_routes.dart';
 import '../widgets/main_shell.dart';
 
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 

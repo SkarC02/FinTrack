@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:sic_app/core/services/fcm_service.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/firebase_collections.dart';
@@ -64,6 +65,8 @@ class AuthService {
         );
       }
 
+      await FcmService.instance.init();
+      
       return appUser;
     } on FirebaseAuthException {
       rethrow;
@@ -107,6 +110,8 @@ class AuthService {
           .set(appUser.toFirestore());
 
       await credential.user!.updateDisplayName(nombreCompleto.trim());
+
+      await FcmService.instance.init();
 
       return appUser;
     } on FirebaseAuthException {
