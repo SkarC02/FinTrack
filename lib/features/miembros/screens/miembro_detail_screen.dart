@@ -26,7 +26,8 @@ class MiembroDetailScreen extends ConsumerStatefulWidget {
   final String miembroId;
 
   @override
-  ConsumerState<MiembroDetailScreen> createState() => _MiembroDetailScreenState();
+  ConsumerState<MiembroDetailScreen> createState() =>
+      _MiembroDetailScreenState();
 }
 
 class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
@@ -48,15 +49,18 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
   @override
   Widget build(BuildContext context) {
     final miembroAsync = ref.watch(miembroByIdProvider(widget.miembroId));
-    final rol          = ref.watch(rolActualProvider).valueOrNull ?? '';
-    final puedeEditar  = rol == AppConstants.rolAdmin || rol == AppConstants.rolSecretario;
+    final rol = ref.watch(rolActualProvider).valueOrNull ?? '';
+    final puedeEditar =
+        rol == AppConstants.rolAdmin || rol == AppConstants.rolSecretario;
 
     return miembroAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
       data: (miembro) {
         if (miembro == null) {
-          return const Scaffold(body: Center(child: Text('Miembro no encontrado')));
+          return const Scaffold(
+              body: Center(child: Text('Miembro no encontrado')));
         }
         return _buildScaffold(miembro, puedeEditar);
       },
@@ -128,7 +132,8 @@ class _PerfilTab extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 42,
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
                   child: Text(
                     miembro.nombreCompleto.isNotEmpty
                         ? miembro.nombreCompleto[0].toUpperCase()
@@ -153,12 +158,14 @@ class _PerfilTab extends StatelessWidget {
           ),
           const SizedBox(height: 28),
           _InfoCard(children: [
-            _InfoRow(Icons.badge,           'Código sobre',  miembro.codigoSobre),
-            _InfoRow(Icons.email,           'Correo',        miembro.correo),
-            _InfoRow(Icons.phone,           'Teléfono',      miembro.telefono),
-            _InfoRow(Icons.home,            'Dirección',     miembro.direccion.isEmpty ? '—' : miembro.direccion),
-            _InfoRow(Icons.manage_accounts, 'Rol',           miembro.rolLabel),
-            _InfoRow(Icons.calendar_month,  'Miembro desde', fmt.format(miembro.fechaMembresia)),
+            _InfoRow(Icons.badge, 'Código sobre', miembro.codigoSobre),
+            _InfoRow(Icons.email, 'Correo', miembro.correo),
+            _InfoRow(Icons.phone, 'Teléfono', miembro.telefono),
+            _InfoRow(Icons.home, 'Dirección',
+                miembro.direccion.isEmpty ? '—' : miembro.direccion),
+            _InfoRow(Icons.manage_accounts, 'Rol', miembro.rolLabel),
+            _InfoRow(Icons.calendar_month, 'Miembro desde',
+                fmt.format(miembro.fechaMembresia)),
           ]),
         ],
       ),
@@ -174,7 +181,8 @@ class _AportesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final aportesAsync = ref.watch(_aportesProvider(miembroId));
     final fmtFecha = DateFormat('dd/MM/yyyy');
-    final fmtMonto = NumberFormat('${AppConstants.simboloMoneda} #,##0.00', 'es_HN');
+    final fmtMonto =
+        NumberFormat('${AppConstants.simboloMoneda} #,##0.00', 'es_HN');
 
     return aportesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -194,7 +202,9 @@ class _AportesTab extends ConsumerWidget {
         }
 
         final total = aportes.fold<double>(
-            0, (sum, a) => sum + ((a[FirebaseCollections.monto] ?? 0) as num).toDouble());
+            0,
+            (sum, a) =>
+                sum + ((a[FirebaseCollections.monto] ?? 0) as num).toDouble());
 
         return Column(
           children: [
@@ -211,15 +221,16 @@ class _AportesTab extends ConsumerWidget {
                   Text(
                     'Total aportado',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
-                    ),
+                          color: Colors.white,
+                        ),
                   ),
                   Text(
                     fmtMonto.format(total),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
                   ),
                 ],
               ),
@@ -230,10 +241,12 @@ class _AportesTab extends ConsumerWidget {
                 itemCount: aportes.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (_, i) {
-                  final a     = aportes[i];
-                  final tipo  = a[FirebaseCollections.tipo] as String? ?? '';
-                  final monto = ((a[FirebaseCollections.monto] ?? 0) as num).toDouble();
-                  final fecha = (a[FirebaseCollections.fecha] as Timestamp?)?.toDate();
+                  final a = aportes[i];
+                  final tipo = a[FirebaseCollections.tipo] as String? ?? '';
+                  final monto =
+                      ((a[FirebaseCollections.monto] ?? 0) as num).toDouble();
+                  final fecha =
+                      (a[FirebaseCollections.fecha] as Timestamp?)?.toDate();
 
                   return ListTile(
                     leading: const Icon(Icons.attach_money),
@@ -241,7 +254,8 @@ class _AportesTab extends ConsumerWidget {
                       AppConstants.tiposIngresoLabel[tipo] ?? tipo,
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    subtitle: Text(fecha != null ? fmtFecha.format(fecha) : '—'),
+                    subtitle:
+                        Text(fecha != null ? fmtFecha.format(fecha) : '—'),
                     trailing: Text(
                       fmtMonto.format(monto),
                       style: TextStyle(
@@ -281,12 +295,11 @@ class _EditarRolSheetState extends ConsumerState<_EditarRolSheet> {
     final updated = widget.miembro.copyWith(rol: _rol);
 
     final scaffoldMsg = ScaffoldMessenger.of(context);
-    final errorColor  = Theme.of(context).colorScheme.error;
-    final nav         = Navigator.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
+    final nav = Navigator.of(context);
 
-    final ok = await ref
-        .read(miembroFormProvider.notifier)
-        .actualizarMiembro(updated);
+    final ok =
+        await ref.read(miembroFormProvider.notifier).actualizarMiembro(updated);
 
     if (!mounted) return;
 
@@ -303,7 +316,9 @@ class _EditarRolSheetState extends ConsumerState<_EditarRolSheet> {
 
     return Padding(
       padding: EdgeInsets.only(
-        left: 20, right: 20, top: 20,
+        left: 20,
+        right: 20,
+        top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: Column(
@@ -332,7 +347,8 @@ class _EditarRolSheetState extends ConsumerState<_EditarRolSheet> {
             onPressed: isLoading ? null : _guardar,
             child: isLoading
                 ? const SizedBox(
-                    height: 20, width: 20,
+                    height: 20,
+                    width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Text('Guardar'),
@@ -381,10 +397,9 @@ class _InfoCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          children: children
-              .expand((w) => [w, const Divider(height: 20)])
-              .toList()
-            ..removeLast(),
+          children:
+              children.expand((w) => [w, const Divider(height: 20)]).toList()
+                ..removeLast(),
         ),
       ),
     );
@@ -408,8 +423,10 @@ class _InfoRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline)),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline)),
               Text(value, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),

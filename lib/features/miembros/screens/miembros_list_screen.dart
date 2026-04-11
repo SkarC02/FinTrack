@@ -7,7 +7,7 @@ import '../../../core/providers/rol_provider.dart';
 import '../../auth/models/miembro_model.dart';
 import '../../auth/services/miembro_service.dart';
 
-final _busquedaProvider    = StateProvider<String>((ref) => '');
+final _busquedaProvider = StateProvider<String>((ref) => '');
 final _soloActivosProvider = StateProvider<bool>((ref) => true);
 
 class MiembrosListScreen extends ConsumerWidget {
@@ -16,11 +16,11 @@ class MiembrosListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final soloActivos = ref.watch(_soloActivosProvider);
-    final busqueda    = ref.watch(_busquedaProvider).toLowerCase();
-    final rol         = ref.watch(rolActualProvider).valueOrNull ?? '';
+    final busqueda = ref.watch(_busquedaProvider).toLowerCase();
+    final rol = ref.watch(rolActualProvider).valueOrNull ?? '';
 
-    final puedeGestionar = rol == AppConstants.rolAdmin ||
-        rol == AppConstants.rolSecretario;
+    final puedeGestionar =
+        rol == AppConstants.rolAdmin || rol == AppConstants.rolSecretario;
 
     final stream = soloActivos
         ? ref.watch(miembrosActivosStreamProvider)
@@ -58,8 +58,7 @@ class MiembrosListScreen extends ConsumerWidget {
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
-              onChanged: (v) =>
-                  ref.read(_busquedaProvider.notifier).state = v,
+              onChanged: (v) => ref.read(_busquedaProvider.notifier).state = v,
             ),
           ),
           Expanded(
@@ -70,17 +69,21 @@ class MiembrosListScreen extends ConsumerWidget {
                 final filtrados = busqueda.isEmpty
                     ? miembros
                     : miembros.where((m) {
-                        return m.nombreCompleto.toLowerCase().contains(busqueda) ||
+                        return m.nombreCompleto
+                                .toLowerCase()
+                                .contains(busqueda) ||
                             m.correo.toLowerCase().contains(busqueda) ||
                             m.codigoSobre.toLowerCase().contains(busqueda);
                       }).toList();
 
                 if (filtrados.isEmpty) {
-                  return const Center(child: Text('No se encontraron miembros'));
+                  return const Center(
+                      child: Text('No se encontraron miembros'));
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: filtrados.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, i) => _MiembroTile(
@@ -171,22 +174,22 @@ class _RolBadge extends StatelessWidget {
   Color _bgColor(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return switch (rol) {
-      AppConstants.rolAdmin      => cs.errorContainer,
-      AppConstants.rolPastor     => cs.tertiaryContainer,
-      AppConstants.rolTesorero   => cs.secondaryContainer,
+      AppConstants.rolAdmin => cs.errorContainer,
+      AppConstants.rolPastor => cs.tertiaryContainer,
+      AppConstants.rolTesorero => cs.secondaryContainer,
       AppConstants.rolSecretario => cs.secondaryContainer,
-      _                          => cs.surfaceContainerHighest,
+      _ => cs.surfaceContainerHighest,
     };
   }
 
   Color _fgColor(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return switch (rol) {
-      AppConstants.rolAdmin      => cs.onErrorContainer,
-      AppConstants.rolPastor     => cs.onTertiaryContainer,
-      AppConstants.rolTesorero   => cs.onSecondaryContainer,
+      AppConstants.rolAdmin => cs.onErrorContainer,
+      AppConstants.rolPastor => cs.onTertiaryContainer,
+      AppConstants.rolTesorero => cs.onSecondaryContainer,
       AppConstants.rolSecretario => cs.onSecondaryContainer,
-      _                          => cs.onSurfaceVariant,
+      _ => cs.onSurfaceVariant,
     };
   }
 
@@ -216,12 +219,13 @@ class _ToggleActivoButton extends ConsumerStatefulWidget {
   final MiembroModel miembro;
 
   @override
-  ConsumerState<_ToggleActivoButton> createState() => _ToggleActivoButtonState();
+  ConsumerState<_ToggleActivoButton> createState() =>
+      _ToggleActivoButtonState();
 }
 
 class _ToggleActivoButtonState extends ConsumerState<_ToggleActivoButton> {
   Future<void> _confirmar() async {
-    final accion    = widget.miembro.activo ? 'dar de baja' : 'reactivar';
+    final accion = widget.miembro.activo ? 'dar de baja' : 'reactivar';
     final eraActivo = widget.miembro.activo;
 
     final confirma = await showDialog<bool>(

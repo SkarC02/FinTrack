@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:sic_app/features/auth/screens/perfil_screen.dart';
 import '../../features/auth/services/auth_service.dart';
+import '../../features/auth/models/app_user.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/ingresos/screens/ingreso_form_screen.dart';
@@ -10,22 +11,65 @@ import '../../features/ingresos/screens/historial_ingresos_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/miembros/screens/miembros_list_screen.dart';
 import '../../features/miembros/screens/miembro_detail_screen.dart';
+import '../../features/gastos/screens/gasto_form_screen.dart';
+import '../../features/gastos/screens/historial_gastos_screen.dart';
+import '../../features/miembros/screens/miembros_list_screen.dart';
+import '../../features/miembros/screens/miembro_detail_screen.dart';
+import '../../features/reportes/screens/reportes_screen.dart';
 import '../constants/app_routes.dart';
 import '../widgets/main_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
+  // Escuchar cambios del usuario para refrescar rutas
+  ref.watch(currentUserProvider);
+
   return GoRouter(
     initialLocation: AppRoutes.login,
+    refreshListenable: _RouterNotifier(ref),
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull != null;
-      final isPublicRoute =
-          state.matchedLocation == AppRoutes.login ||
+      final isPublicRoute = state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
 
+      // Si no está autenticado va al login
       if (!isLoggedIn && !isPublicRoute) return AppRoutes.login;
-      if (isLoggedIn && isPublicRoute) return AppRoutes.dashboard;
+
+      // Si está autenticado obtener usuario
+      if (isLoggedIn) {
+        final userAsync = ref.read(currentUserProvider);
+
+        // Esperar a que cargue el usuario
+        if (userAsync.isLoading) return null;
+
+        final user = userAsync.valueOrNull;
+
+        // Si el usuario aún no cargó no redirigir
+        if (user == null) return null;
+
+        // Si va a ruta pública redirigir según rol
+        if (isPublicRoute) {
+          if (user.rol == UserRole.miembro) {
+            return AppRoutes.ingresos;
+          }
+          return AppRoutes.dashboard;
+        }
+
+        // Si es miembro verificar rutas permitidas
+        if (user.rol == UserRole.miembro) {
+          const rutasPermitidas = [
+            AppRoutes.ingresos,
+            '/perfil',
+          ];
+
+          final tieneAcceso =
+              rutasPermitidas.any((r) => state.matchedLocation.startsWith(r));
+
+          if (!tieneAcceso) return AppRoutes.ingresos;
+        }
+      }
+
       return null;
     },
     routes: [
@@ -72,6 +116,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
+          // Gastos
+          GoRoute(
+            path: AppRoutes.gastos,
+            builder: (context, state) => const HistorialGastosScreen(),
+            routes: [
+              GoRoute(
+                path: 'nuevo',
+                builder: (context, state) => const GastoFormScreen(),
+              ),
+              GoRoute(
+                path: 'editar/:id',
+                builder: (context, state) => GastoFormScreen(
+                  gastoId: state.pathParameters['id'],
+                ),
+              ),
+            ],
+          ),
+
+          // Perfil
+          GoRoute(
+            path: '/perfil',
+            builder: (context, state) => const PerfilScreen(),
+          ),
+
+          // Reportes
+          GoRoute(
+            path: AppRoutes.reportes,
+            builder: (context, state) => const ReportesScreen(),
+          ),
         ],
       ),
     ],
@@ -82,3 +156,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
+
+// ── Notifier para refrescar el router cuando cambia el usuario ────────────
+class _RouterNotifier extends ChangeNotifier {
+  _RouterNotifier(this._ref) {
+    _ref.listen(currentUserProvider, (_, __) {
+      notifyListeners();
+    });
+    _ref.listen(authStateProvider, (_, __) {
+      notifyListeners();
+    });
+  }
+
+  final Ref _ref;
+}

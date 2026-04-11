@@ -15,7 +15,7 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user         = ref.watch(currentUserProvider).valueOrNull;
+    final user = ref.watch(currentUserProvider).valueOrNull;
     final resumenAsync = ref.watch(dashboardResumenProvider);
 
     return Scaffold(
@@ -26,25 +26,11 @@ class DashboardScreen extends ConsumerWidget {
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.gold),
         ),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.error_outline,
-                  color: AppColors.redLight, size: 48),
-              const SizedBox(height: 12),
-              Text('Error al cargar datos:\n$e',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 13)),
-              const SizedBox(height: 16),
-              TextButton.icon(
-                onPressed: () => ref.invalidate(dashboardResumenProvider),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-              ),
-            ]),
-          ),
+        error: (e, _) => _AutoRetry(
+          onRetry: () {
+            ref.invalidate(dashboardResumenProvider);
+            ref.invalidate(dashboardGraficaProvider);
+          },
         ),
         data: (resumen) => RefreshIndicator(
           color: AppColors.gold,
@@ -77,14 +63,20 @@ class DashboardScreen extends ConsumerWidget {
       backgroundColor: AppColors.dark,
       automaticallyImplyLeading: false,
       title: Row(children: [
+        // DESPUÉS — imagen del logo:
         Container(
-          width: 34, height: 34,
+          width: 34,
+          height: 34,
           decoration: BoxDecoration(
-            color: AppColors.gold,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(Icons.church_rounded,
-              color: AppColors.white, size: 18),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.asset(
+              'lib/core/assets/logotipo.png',
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
         const SizedBox(width: 10),
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -136,40 +128,40 @@ class DashboardScreen extends ConsumerWidget {
   Widget _buildKPIs(DashboardResumen r) {
     final fmt = NumberFormat('#,##0.00');
     return GridView.count(
-      crossAxisCount:   2,
-      shrinkWrap:       true,
-      physics:          const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 8,
-      mainAxisSpacing:  8,
+      mainAxisSpacing: 8,
       childAspectRatio: 1.5,
       children: [
         _KpiCard(
-          label:   'Ingresos',
-          value:   'L ${fmt.format(r.totalIngresos)}',
+          label: 'Ingresos',
+          value: 'L ${fmt.format(r.totalIngresos)}',
           subtitle: 'Este mes',
-          icon:    Icons.trending_up_rounded,
-          color:   AppColors.green,
+          icon: Icons.trending_up_rounded,
+          color: AppColors.green,
         ),
         _KpiCard(
-          label:   'Gastos',
-          value:   'L ${fmt.format(r.totalGastos)}',
+          label: 'Gastos',
+          value: 'L ${fmt.format(r.totalGastos)}',
           subtitle: 'Este mes',
-          icon:    Icons.trending_down_rounded,
-          color:   AppColors.redLight,
+          icon: Icons.trending_down_rounded,
+          color: AppColors.redLight,
         ),
         _KpiCard(
-          label:   'Saldo',
-          value:   'L ${fmt.format(r.saldo)}',
+          label: 'Saldo',
+          value: 'L ${fmt.format(r.saldo)}',
           subtitle: 'Disponible',
-          icon:    Icons.account_balance_wallet_outlined,
-          color:   r.saldo >= 0 ? AppColors.gold : AppColors.redLight,
+          icon: Icons.account_balance_wallet_outlined,
+          color: r.saldo >= 0 ? AppColors.gold : AppColors.redLight,
         ),
         _KpiCard(
-          label:   'Diezmadores',
-          value:   '${r.diezmadores} / ${r.totalMiembros}',
+          label: 'Diezmadores',
+          value: '${r.diezmadores} / ${r.totalMiembros}',
           subtitle: 'miembros activos',
-          icon:    Icons.people_outline_rounded,
-          color:   AppColors.blue,
+          icon: Icons.people_outline_rounded,
+          color: AppColors.blue,
         ),
       ],
     );
@@ -182,13 +174,12 @@ class DashboardScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color:        const Color(0xFFFFF8E1),
-        border:       Border.all(color: const Color(0xFFFFD54F)),
+        color: const Color(0xFFFFF8E1),
+        border: Border.all(color: const Color(0xFFFFD54F)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: const Row(children: [
-        Icon(Icons.warning_amber_rounded,
-            color: Color(0xFF6D4C00), size: 16),
+        Icon(Icons.warning_amber_rounded, color: Color(0xFF6D4C00), size: 16),
         SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -206,9 +197,9 @@ class DashboardScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:        AppColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: AppColors.borderLight),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -218,7 +209,7 @@ class DashboardScreen extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                   color: AppColors.textDark)),
           const Spacer(),
-          _legendDot(AppColors.green,  'Ingresos'),
+          _legendDot(AppColors.green, 'Ingresos'),
           const SizedBox(width: 10),
           _legendDot(AppColors.orange, 'Gastos'),
         ]),
@@ -230,21 +221,19 @@ class DashboardScreen extends ConsumerWidget {
               child: CircularProgressIndicator(
                   color: AppColors.gold, strokeWidth: 2),
             ),
-            error: (e, _) => Center(
+            error: (e, _) => const Center(
               child: Text('Sin datos de gráfica',
-                  style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 12)),
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
             ),
             data: (datos) {
               final hayDatos = datos.any((d) =>
-                  (d['ingresos'] as double) > 0 ||
-                  (d['gastos'] as double) > 0);
+                  (d['ingresos'] as double) > 0 || (d['gastos'] as double) > 0);
 
               if (!hayDatos) {
                 return const Center(
                   child: Text('Sin movimientos en los últimos 6 meses',
-                      style: TextStyle(
-                          color: AppColors.textMuted, fontSize: 12)),
+                      style:
+                          TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 );
               }
 
@@ -271,35 +260,35 @@ class DashboardScreen extends ConsumerWidget {
                       },
                     ),
                   ),
-                  leftTitles:  AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  topTitles:   AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
+                  leftTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
-                gridData:   FlGridData(show: false),
+                gridData: FlGridData(show: false),
                 borderData: FlBorderData(show: false),
-                barGroups:  datos.asMap().entries.map((e) {
-                  final d   = e.value;
+                barGroups: datos.asMap().entries.map((e) {
+                  final d = e.value;
                   final ing = (d['ingresos'] as double);
-                  final gas = (d['gastos']   as double);
+                  final gas = (d['gastos'] as double);
                   final max = ing > gas ? ing : gas;
                   final div = max > 0 ? max : 1;
                   return BarChartGroupData(x: e.key, barRods: [
                     BarChartRodData(
-                      toY:   ing / div * 10,
+                      toY: ing / div * 10,
                       color: AppColors.green.withOpacity(0.85),
                       width: 10,
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(4)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(4)),
                     ),
                     BarChartRodData(
-                      toY:   gas / div * 10,
+                      toY: gas / div * 10,
                       color: AppColors.orange.withOpacity(0.85),
                       width: 10,
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(4)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(4)),
                     ),
                   ]);
                 }).toList(),
@@ -312,40 +301,43 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _legendDot(Color color, String label) => Row(children: [
-    Container(
-      width: 7, height: 7,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    ),
-    const SizedBox(width: 4),
-    Text(label,
-        style: const TextStyle(
-            fontSize: 10, color: AppColors.textMuted)),
-  ]);
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(label,
+            style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+      ]);
 
   Widget _buildDonutChart(DashboardResumen r) {
     if (r.ingresosPorTipo.isEmpty) return const SizedBox.shrink();
 
     const colors = [
-      AppColors.gold, AppColors.green, AppColors.blue,
-      AppColors.orange, AppColors.purple,
+      AppColors.gold,
+      AppColors.green,
+      AppColors.blue,
+      AppColors.orange,
+      AppColors.purple,
     ];
     const labels = {
-      'diezmo':   'Diezmos',
-      'ofrenda':  'Ofrendas',
+      'diezmo': 'Diezmos',
+      'ofrenda': 'Ofrendas',
       'donacion': 'Donaciones',
       'primicia': 'Primicias',
       'misiones': 'Misiones',
     };
 
     final entries = r.ingresosPorTipo.entries.toList();
-    final total   = r.totalIngresos;
+    final total = r.totalIngresos;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:        AppColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: AppColors.borderLight),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Distribución Ingresos',
@@ -356,16 +348,17 @@ class DashboardScreen extends ConsumerWidget {
         const SizedBox(height: 14),
         Row(children: [
           SizedBox(
-            width: 90, height: 90,
+            width: 90,
+            height: 90,
             child: PieChart(PieChartData(
-              sectionsSpace:     2,
+              sectionsSpace: 2,
               centerSpaceRadius: 26,
               sections: entries.asMap().entries.map((e) {
                 final pct = total > 0 ? e.value.value / total : 0;
                 return PieChartSectionData(
-                  color:  colors[e.key % colors.length],
-                  value:  e.value.value,
-                  title:  '${(pct * 100).toStringAsFixed(0)}%',
+                  color: colors[e.key % colors.length],
+                  value: e.value.value,
+                  title: '${(pct * 100).toStringAsFixed(0)}%',
                   radius: 30,
                   titleStyle: const TextStyle(
                       fontSize: 8,
@@ -379,13 +372,14 @@ class DashboardScreen extends ConsumerWidget {
           Expanded(
             child: Column(
               children: entries.asMap().entries.map((e) {
-                final pct   = total > 0 ? e.value.value / total * 100 : 0;
+                final pct = total > 0 ? e.value.value / total * 100 : 0;
                 final label = labels[e.value.key] ?? e.value.key;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Row(children: [
                     Container(
-                      width: 7, height: 7,
+                      width: 7,
+                      height: 7,
                       decoration: BoxDecoration(
                           color: colors[e.key % colors.length],
                           shape: BoxShape.circle),
@@ -394,8 +388,7 @@ class DashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: Text(label,
                           style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textDark)),
+                              fontSize: 11, color: AppColors.textDark)),
                     ),
                     Text('${pct.toStringAsFixed(0)}%',
                         style: const TextStyle(
@@ -412,8 +405,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildUltimasTransacciones(
-      BuildContext context, DashboardResumen r) {
+  Widget _buildUltimasTransacciones(BuildContext context, DashboardResumen r) {
     final fmt = DateFormat('dd/MM/yy');
     final fmtM = NumberFormat('#,##0.00');
 
@@ -421,40 +413,40 @@ class DashboardScreen extends ConsumerWidget {
 
     for (final i in r.ultimasTransaccionesIngreso) {
       todas.add({
-        'fecha':      i.fecha,
-        'titulo':     i.tipo.label,
-        'sub':        '${fmt.format(i.fecha)} · ${i.memberName}',
-        'monto':      '+L ${fmtM.format(i.monto)}',
+        'fecha': i.fecha,
+        'titulo': i.tipo.label,
+        'sub': '${fmt.format(i.fecha)} · ${i.memberName}',
+        'monto': '+L ${fmtM.format(i.monto)}',
         'isPositive': true,
-        'color':      AppColors.green,
-        'bg':         AppColors.greenBg,
-        'icon':       Icons.arrow_downward_rounded,
+        'color': AppColors.green,
+        'bg': AppColors.greenBg,
+        'icon': Icons.arrow_downward_rounded,
       });
     }
 
     for (final g in r.ultimasTransaccionesGasto) {
       todas.add({
-        'fecha':      g.fecha,
-        'titulo':     g.descripcion,
-        'sub':        '${fmt.format(g.fecha)} · ${g.proveedor}',
-        'monto':      '-L ${fmtM.format(g.monto)}',
+        'fecha': g.fecha,
+        'titulo': g.descripcion,
+        'sub': '${fmt.format(g.fecha)} · ${g.proveedor}',
+        'monto': '-L ${fmtM.format(g.monto)}',
         'isPositive': false,
-        'color':      AppColors.redLight,
-        'bg':         AppColors.redBg,
-        'icon':       Icons.arrow_upward_rounded,
+        'color': AppColors.redLight,
+        'bg': AppColors.redBg,
+        'icon': Icons.arrow_upward_rounded,
       });
     }
 
-    todas.sort((a, b) =>
-        (b['fecha'] as DateTime).compareTo(a['fecha'] as DateTime));
+    todas.sort(
+        (a, b) => (b['fecha'] as DateTime).compareTo(a['fecha'] as DateTime));
 
     if (todas.isEmpty) return const SizedBox.shrink();
 
     return Container(
       decoration: BoxDecoration(
-        color:        AppColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: AppColors.borderLight),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(children: [
         Padding(
@@ -469,50 +461,98 @@ class DashboardScreen extends ConsumerWidget {
             TextButton(
               onPressed: () => context.go(AppRoutes.ingresos),
               child: const Text('Ver más',
-                  style: TextStyle(
-                      fontSize: 11, color: AppColors.gold)),
+                  style: TextStyle(fontSize: 11, color: AppColors.gold)),
             ),
           ]),
         ),
         ...todas.take(6).map((t) => Column(children: [
-          const Divider(height: 1, color: AppColors.borderLight),
-          ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-            leading: Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                color:        t['bg'] as Color,
-                borderRadius: BorderRadius.circular(10),
+              const Divider(height: 1, color: AppColors.borderLight),
+              ListTile(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                leading: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: t['bg'] as Color,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(t['icon'] as IconData,
+                      color: t['color'] as Color, size: 18),
+                ),
+                title: Text(t['titulo'] as String,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                subtitle: Text(t['sub'] as String,
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textMuted)),
+                trailing: Text(t['monto'] as String,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: t['color'] as Color)),
               ),
-              child: Icon(t['icon'] as IconData,
-                  color: t['color'] as Color, size: 18),
-            ),
-            title: Text(t['titulo'] as String,
-                style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600)),
-            subtitle: Text(t['sub'] as String,
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.textMuted)),
-            trailing: Text(t['monto'] as String,
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: t['color'] as Color)),
-          ),
-        ])),
+            ])),
         const SizedBox(height: 8),
       ]),
     );
   }
 }
 
+// ── Auto Retry ────────────────────────────────────────────
+class _AutoRetry extends StatefulWidget {
+  final VoidCallback onRetry;
+  const _AutoRetry({required this.onRetry});
+
+  @override
+  State<_AutoRetry> createState() => _AutoRetryState();
+}
+
+class _AutoRetryState extends State<_AutoRetry> {
+  int _intentos = 0;
+  static const _maxIntentos = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _reintentarAutomatico();
+  }
+
+  Future<void> _reintentarAutomatico() async {
+    while (_intentos < _maxIntentos) {
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      _intentos++;
+      widget.onRetry();
+      return;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(color: AppColors.gold),
+          SizedBox(height: 16),
+          Text(
+            'Cargando datos...',
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── KPI Card ──────────────────────────────────────────────
 class _KpiCard extends StatelessWidget {
-  final String  label;
-  final String  value;
-  final String  subtitle;
+  final String label;
+  final String value;
+  final String subtitle;
   final IconData icon;
-  final Color   color;
+  final Color color;
 
   const _KpiCard({
     required this.label,
@@ -527,19 +567,19 @@ class _KpiCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:        AppColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: AppColors.borderLight),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment:  MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(children: [
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color:        color.withOpacity(0.1),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 14),
@@ -555,14 +595,11 @@ class _KpiCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(value,
               style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: color),
-              maxLines:  1,
-              overflow:  TextOverflow.ellipsis),
+                  fontSize: 15, fontWeight: FontWeight.w800, color: color),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
           Text(subtitle,
-              style: const TextStyle(
-                  fontSize: 10, color: AppColors.textMuted)),
+              style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
         ],
       ),
     );
