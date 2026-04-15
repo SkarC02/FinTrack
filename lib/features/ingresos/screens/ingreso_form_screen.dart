@@ -2,44 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/constants/app_constants.dart';
+import '../../auth/services/auth_service.dart';
+import '../../auth/models/app_user.dart';
 import '../models/ingreso_model.dart';
 import '../services/ingreso_service.dart';
 
-class IngresoFormScreen extends StatefulWidget {
-  final String? ingresoId; 
-
+class IngresoFormScreen extends ConsumerStatefulWidget {
+  final String? ingresoId;
   const IngresoFormScreen({super.key, this.ingresoId});
 
   @override
-  State<IngresoFormScreen> createState() => _IngresoFormScreenState();
+  ConsumerState<IngresoFormScreen> createState() => _IngresoFormScreenState();
 }
 
-class _IngresoFormScreenState extends State<IngresoFormScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _montoCtrl = TextEditingController();
-  final _notasCtrl = TextEditingController();
+class _IngresoFormScreenState extends ConsumerState<IngresoFormScreen> {
+  final _formKey    = GlobalKey<FormState>();
+  final _montoCtrl  = TextEditingController();
+  final _notasCtrl  = TextEditingController();
   final _buscarCtrl = TextEditingController();
 
-  TipoIngreso _tipo = TipoIngreso.ofrenda;
-  MetodoPago _metodo = MetodoPago.efectivo;
-  DateTime _fecha = DateTime.now();
-  bool _loading = false;
-  bool _cargandoIngreso = false;
+  TipoIngreso _tipo   = TipoIngreso.ofrenda;
+  MetodoPago  _metodo = MetodoPago.efectivo;
+  DateTime    _fecha  = DateTime.now();
+  bool _loading        = false;
+  bool _cargandoIngreso= false;
 
-  String _memberId = '';
+  String _memberId   = '';
   String _memberName = '';
 
-  List<Map<String, dynamic>> _miembros = [];
-  bool _buscando = false;
-  bool _mostrarLista = false;
+  List<Map<String, dynamic>> _miembros    = [];
+  bool _buscando    = false;
+  bool _mostrarLista= false;
 
   bool get _esEdicion => widget.ingresoId != null;
 
   @override
   void initState() {
     super.initState();
-    if (_esEdicion) _cargarIngresoDesdeFirestore();
+    if (_esEdicion) {
+      _cargarIngresoDesdeFirestore();
+    } else {
+      _autoAsignarSiEsMiembro();
+    }
   }
+
+  // ── Si es miembro asigna automáticamente su propio nombre ──
+Future<void> _autoAsignarSiEsMiembro() async {
+  final user = ref.read(currentUserProvider).valueOrNull;
+  if (user == null) return;
+
+  // Para todos los roles carga su propio nombre por defecto
+  // El staff puede cambiarlo buscando otro miembro
+  setState(() {
+    _memberId        = user.uid;
+    _memberName      = user.nombreCompleto;
+    _buscarCtrl.text = user.nombreCompleto;
+  });
+}
 
   Future<void> _cargarIngresoDesdeFirestore() async {
     setState(() => _cargandoIngreso = true);
@@ -47,14 +69,14 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
       final ingreso =
           await IngresoService.instance.obtenerPorId(widget.ingresoId!);
       if (ingreso != null && mounted) {
-        _montoCtrl.text = ingreso.monto.toStringAsFixed(2);
-        _notasCtrl.text = ingreso.notas;
+        _montoCtrl.text  = ingreso.monto.toStringAsFixed(2);
+        _notasCtrl.text  = ingreso.notas;
         _buscarCtrl.text = ingreso.memberName;
         setState(() {
-          _tipo = ingreso.tipo;
-          _metodo = ingreso.metodo;
-          _fecha = ingreso.fecha;
-          _memberId = ingreso.memberId;
+          _tipo       = ingreso.tipo;
+          _metodo     = ingreso.metodo;
+          _fecha      = ingreso.fecha;
+          _memberId   = ingreso.memberId;
           _memberName = ingreso.memberName;
         });
       }
@@ -100,14 +122,14 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
           })
           .take(8)
           .map((d) => {
-                'id': d.id,
+                'id':     d.id,
                 'nombre': d.data()['nombreCompleto'] ?? '',
                 'codigo': d.data()['codigoSobre'] ?? '',
               })
           .toList();
 
       setState(() {
-        _miembros = resultados;
+        _miembros     = resultados;
         _mostrarLista = resultados.isNotEmpty;
       });
     } catch (_) {
@@ -119,10 +141,10 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
 
   void _seleccionarMiembro(Map<String, dynamic> m) {
     setState(() {
-      _memberId = m['id'];
-      _memberName = m['nombre'];
+      _memberId        = m['id'];
+      _memberName      = m['nombre'];
       _buscarCtrl.text = '${m['nombre']} (${m['codigo']})';
-      _mostrarLista = false;
+      _mostrarLista    = false;
     });
   }
 
@@ -147,21 +169,28 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
       return;
     }
 
+    // Verificar que el miembro no está registrando por otro
+    final user = ref.read(currentUserProvider).valueOrNull;
+    if (user?.rol == UserRole.miembro && _memberId != user!.uid) {
+      _mostrarError('Solo puedes registrar tus propios aportes');
+      return;
+    }
+
     setState(() => _loading = true);
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final uid   = FirebaseAuth.instance.currentUser?.uid ?? '';
       final monto = double.parse(_montoCtrl.text.replaceAll(',', '.'));
 
       final ingreso = IngresoModel(
-        id: _esEdicion ? widget.ingresoId! : '',
-        tipo: _tipo,
-        monto: monto,
-        memberId: _memberId,
-        memberName: _memberName,
-        fecha: _fecha,
-        metodo: _metodo,
-        notas: _notasCtrl.text.trim(),
-        registradoPor: uid,
+        id:           _esEdicion ? widget.ingresoId! : '',
+        tipo:         _tipo,
+        monto:        monto,
+        memberId:     _memberId,
+        memberName:   _memberName,
+        fecha:        _fecha,
+        metodo:       _metodo,
+        notas:        _notasCtrl.text.trim(),
+        registradoPor:uid,
       );
 
       if (_esEdicion) {
@@ -208,7 +237,11 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final cs    = theme.colorScheme;
+
+    // Verificar si es miembro para ocultar el buscador
+    final user     = ref.watch(currentUserProvider).valueOrNull;
+    final esMiembro= user?.rol == UserRole.miembro;
 
     return Scaffold(
       appBar: AppBar(
@@ -239,8 +272,8 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _montoCtrl,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d+\.?\d{0,2}')),
@@ -293,8 +326,9 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                               tipo.label,
                               style: TextStyle(
                                 color: sel ? cs.onPrimary : cs.onSurface,
-                                fontWeight:
-                                    sel ? FontWeight.w700 : FontWeight.w400,
+                                fontWeight: sel
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
                                 fontSize: 13,
                               ),
                             ),
@@ -305,78 +339,115 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
 
                     const SizedBox(height: 24),
 
+                    // ── Miembro ───────────────────────────────
                     _SectionLabel(label: 'MIEMBRO'),
                     const SizedBox(height: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextFormField(
-                          controller: _buscarCtrl,
-                          onChanged: _buscarMiembros,
-                          decoration: InputDecoration(
-                            hintText: 'Buscar por nombre o código...',
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: _buscando
-                                ? const Padding(
-                                    padding: EdgeInsets.all(12),
-                                    child: SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
-                                    ))
-                                : _memberId.isNotEmpty
-                                    ? Icon(Icons.check_circle,
-                                        color: Colors.green.shade400)
-                                    : null,
-                          ),
-                          validator: (_) => _memberId.isEmpty
-                              ? 'Selecciona un miembro'
-                              : null,
+
+                    // Si es miembro muestra su nombre fijo
+                    // Si es staff muestra el buscador
+                    if (esMiembro)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: cs.primary.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(13),
+                          border: Border.all(
+                              color: cs.primary.withOpacity(0.3), width: 1.5),
                         ),
-                        if (_mostrarLista)
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            decoration: BoxDecoration(
-                              color: cs.surface,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: cs.primary.withOpacity(0.4),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                        child: Row(children: [
+                          Icon(Icons.person_outline,
+                              color: cs.primary, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _memberName,
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: cs.onSurface),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children:
-                                    _miembros.asMap().entries.map((entry) {
-                                  final i = entry.key;
-                                  final m = entry.value;
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (i > 0)
-                                        Divider(
-                                          height: 1,
-                                          color: cs.primary.withOpacity(0.15),
-                                        ),
-                                      Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: () => _seleccionarMiembro(m),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 12, vertical: 10),
-                                            child: Row(
-                                              children: [
+                          ),
+                          Icon(Icons.lock_outline,
+                              color: cs.onSurface.withOpacity(0.4), size: 16),
+                        ]),
+                      )
+                    else
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextFormField(
+                            controller: _buscarCtrl,
+                            onChanged: _buscarMiembros,
+                            decoration: InputDecoration(
+                              hintText: 'Buscar por nombre o código...',
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: _buscando
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(12),
+                                      child: SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      ))
+                                  : _memberId.isNotEmpty
+                                      ? Icon(Icons.check_circle,
+                                          color: Colors.green.shade400)
+                                      : null,
+                            ),
+                            validator: (_) => _memberId.isEmpty
+                                ? 'Selecciona un miembro'
+                                : null,
+                          ),
+                          if (_mostrarLista)
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              decoration: BoxDecoration(
+                                color: cs.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: cs.primary.withOpacity(0.4),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: _miembros
+                                      .asMap()
+                                      .entries
+                                      .map((entry) {
+                                    final i = entry.key;
+                                    final m = entry.value;
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (i > 0)
+                                          Divider(
+                                            height: 1,
+                                            color:
+                                                cs.primary.withOpacity(0.15),
+                                          ),
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: () =>
+                                                _seleccionarMiembro(m),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 10),
+                                              child: Row(children: [
                                                 CircleAvatar(
                                                   radius: 18,
                                                   backgroundColor: cs.primary
@@ -403,24 +474,21 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                                                         CrossAxisAlignment
                                                             .start,
                                                     children: [
+                                                      Text(m['nombre'],
+                                                          style: TextStyle(
+                                                            fontSize: 14,
+                                                            color: cs.onSurface,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          )),
                                                       Text(
-                                                        m['nombre'],
-                                                        style: TextStyle(
-                                                          fontSize: 14,
-                                                          color: cs.onSurface,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        'Código: ${m['codigo']}',
-                                                        style: TextStyle(
-                                                          fontSize: 11,
-                                                          color: cs.onSurface
-                                                              .withOpacity(
-                                                                  0.55),
-                                                        ),
-                                                      ),
+                                                          'Código: ${m['codigo']}',
+                                                          style: TextStyle(
+                                                            fontSize: 11,
+                                                            color: cs.onSurface
+                                                                .withOpacity(
+                                                                    0.55),
+                                                          )),
                                                     ],
                                                   ),
                                                 ),
@@ -428,19 +496,18 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                                                     size: 16,
                                                     color: cs.primary
                                                         .withOpacity(0.5)),
-                                              ],
+                                              ]),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
+                        ],
+                      ),
 
                     const SizedBox(height: 24),
 
@@ -455,7 +522,8 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
                                 color: sel
                                     ? cs.primary.withOpacity(0.15)
@@ -468,30 +536,28 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                                   width: sel ? 2 : 1,
                                 ),
                               ),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    _iconMetodo(m),
+                              child: Column(children: [
+                                Icon(
+                                  _iconMetodo(m),
+                                  color: sel
+                                      ? cs.primary
+                                      : cs.onSurface.withOpacity(0.5),
+                                  size: 20,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  m.label,
+                                  style: TextStyle(
+                                    fontSize: 11,
                                     color: sel
                                         ? cs.primary
-                                        : cs.onSurface.withOpacity(0.5),
-                                    size: 20,
+                                        : cs.onSurface.withOpacity(0.6),
+                                    fontWeight: sel
+                                        ? FontWeight.w700
+                                        : FontWeight.w400,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    m.label,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: sel
-                                          ? cs.primary
-                                          : cs.onSurface.withOpacity(0.6),
-                                      fontWeight: sel
-                                          ? FontWeight.w700
-                                          : FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ]),
                             ),
                           ),
                         );
@@ -513,22 +579,20 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                           border: Border.all(
                               color: cs.outline.withOpacity(0.3), width: 1.5),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.calendar_today,
-                                color: cs.primary, size: 18),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${_fecha.day.toString().padLeft(2, '0')}/'
-                              '${_fecha.month.toString().padLeft(2, '0')}/'
-                              '${_fecha.year}',
-                              style: theme.textTheme.bodyLarge,
-                            ),
-                            const Spacer(),
-                            Icon(Icons.chevron_right,
-                                color: cs.onSurface.withOpacity(0.4)),
-                          ],
-                        ),
+                        child: Row(children: [
+                          Icon(Icons.calendar_today,
+                              color: cs.primary, size: 18),
+                          const SizedBox(width: 12),
+                          Text(
+                            '${_fecha.day.toString().padLeft(2, '0')}/'
+                            '${_fecha.month.toString().padLeft(2, '0')}/'
+                            '${_fecha.year}',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          const Spacer(),
+                          Icon(Icons.chevron_right,
+                              color: cs.onSurface.withOpacity(0.4)),
+                        ]),
                       ),
                     ),
 
@@ -558,8 +622,9 @@ class _IngresoFormScreenState extends State<IngresoFormScreen> {
                                 child: CircularProgressIndicator(
                                     strokeWidth: 2, color: Colors.white))
                             : const Icon(Icons.save_outlined),
-                        label: Text(
-                            _esEdicion ? 'Actualizar' : 'Registrar Ingreso'),
+                        label: Text(_esEdicion
+                            ? 'Actualizar'
+                            : 'Registrar Ingreso'),
                       ),
                     ),
 

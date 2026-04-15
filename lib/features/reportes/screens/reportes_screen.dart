@@ -266,12 +266,12 @@ class _ReportesScreenState extends ConsumerState<ReportesScreen> {
       child: Column(
         children: [
           DropdownButtonFormField<String>(
-            dropdownColor: const Color.fromARGB(255, 136, 129, 116),
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            dropdownColor: const Color.fromARGB(255, 255, 255, 255),
+            style: const TextStyle(color: Colors.black, fontSize: 14),
             decoration: InputDecoration(
               labelText: 'Seleccione el Reporte',
               filled: true,
-              fillColor: const Color.fromARGB(255, 122, 101, 58),
+              fillColor: Colors.white,
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),

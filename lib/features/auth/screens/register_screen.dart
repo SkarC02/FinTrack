@@ -21,24 +21,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   int _step = 0;
 
   // Paso 1
-  final _nombreCtrl = TextEditingController();
-  final _correoCtrl = TextEditingController();
-  final _telefonoCtrl = TextEditingController();
+  final _nombreCtrl    = TextEditingController();
+  final _correoCtrl    = TextEditingController();
+  final _telefonoCtrl  = TextEditingController();
   final _direccionCtrl = TextEditingController();
-  final _form1Key = GlobalKey<FormState>();
+  final _form1Key      = GlobalKey<FormState>();
 
   // Paso 2
-  final _passCtrl = TextEditingController();
+  final _passCtrl    = TextEditingController();
   final _confirmCtrl = TextEditingController();
-  final _form2Key = GlobalKey<FormState>();
-  bool _obscure1 = true;
-  bool _obscure2 = true;
-  int _passStrength = 0;
+  final _form2Key    = GlobalKey<FormState>();
+  bool _obscure1     = true;
+  bool _obscure2     = true;
+  int  _passStrength = 0;
 
-  // Paso 3
-  UserRole _selectedRole = UserRole.miembro;
+  // Siempre miembro por defecto
+  final UserRole _selectedRole = UserRole.miembro;
   bool _termsAccepted = false;
-  bool _loading = false;
+  bool _loading       = false;
 
   @override
   void dispose() {
@@ -55,7 +55,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void _nextStep() {
     if (_step == 0 && !_form1Key.currentState!.validate()) return;
     if (_step == 1 && !_form2Key.currentState!.validate()) return;
-    if (_step < 2) {
+    if (_step < 1) {
       setState(() => _step++);
       _pageCtrl.nextPage(
           duration: const Duration(milliseconds: 300),
@@ -75,6 +75,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _submit() async {
+    if (!_form2Key.currentState!.validate()) return;
     if (!_termsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Debes aceptar los términos de uso')));
@@ -83,12 +84,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _loading = true);
     try {
       await ref.read(authServiceProvider).registerWithEmail(
-            email: _correoCtrl.text,
-            password: _passCtrl.text,
-            nombreCompleto: _nombreCtrl.text,
-            telefono: _telefonoCtrl.text,
-            direccion: _direccionCtrl.text,
-            rol: _selectedRole,
+            email:         _correoCtrl.text,
+            password:      _passCtrl.text,
+            nombreCompleto:_nombreCtrl.text,
+            telefono:      _telefonoCtrl.text,
+            direccion:     _direccionCtrl.text,
+            rol:           _selectedRole, // siempre miembro
           );
     } on FirebaseAuthException catch (e) {
       if (mounted) {
@@ -113,7 +114,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: PageView(
                 controller: _pageCtrl,
                 physics: const NeverScrollableScrollPhysics(),
-                children: [_step1(), _step2(), _step3()],
+                // Solo 2 pasos — sin selección de rol
+                children: [_step1(), _step2()],
               ),
             ),
           ],
@@ -156,17 +158,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  // ── Steps indicator ────────────────────────────────────
+  // ── Steps indicator — solo 2 pasos ────────────────────
   Widget _buildStepsIndicator() {
-    final labels = ['Datos', 'Seguridad', 'Rol'];
+    final labels = ['Datos', 'Seguridad'];
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
       child: Column(children: [
         Row(
-          children: List.generate(5, (i) {
+          children: List.generate(3, (i) {
             if (i.isEven) {
-              final idx = i ~/ 2;
-              final isDone = idx < _step;
+              final idx      = i ~/ 2;
+              final isDone   = idx < _step;
               final isActive = idx == _step;
               return _stepDot(idx + 1, isDone: isDone, isActive: isActive);
             } else {
@@ -189,7 +191,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         const SizedBox(height: 8),
         Row(
           children: List.generate(
-            3,
+            2,
             (i) => Expanded(
               child: Text(
                 labels[i],
@@ -252,9 +254,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       padding: const EdgeInsets.all(24),
       child: Form(
         key: _form1Key,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SizedBox(height: 8),
-          _stepTitle('Datos Personales', 'Completa tu información de miembro'),
+          _stepTitle(
+              'Datos Personales', 'Completa tu información de miembro'),
           const SizedBox(height: 24),
           _label('NOMBRE COMPLETO'),
           _field(
@@ -295,7 +299,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  // ── PASO 2: Contraseña ─────────────────────────────────
+  // ── PASO 2: Contraseña + Crear cuenta ─────────────────
   Widget _step2() {
     final strColors = [
       AppColors.textMutedLight,
@@ -310,7 +314,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       padding: const EdgeInsets.all(24),
       child: Form(
         key: _form2Key,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SizedBox(height: 8),
           _stepTitle('Seguridad', 'Crea una contraseña segura'),
           const SizedBox(height: 24),
@@ -324,9 +329,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 () => _passStrength = Validators.passwordStrength(v)),
             decoration: InputDecoration(
               hintText: 'Mínimo 8 caracteres',
-              hintStyle: const TextStyle(color: AppColors.textMutedLight),
-              prefixIcon:
-                  const Icon(Icons.lock_outline_rounded, color: AppColors.gold),
+              hintStyle:
+                  const TextStyle(color: AppColors.textMutedLight),
+              prefixIcon: const Icon(Icons.lock_outline_rounded,
+                  color: AppColors.gold),
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscure1
@@ -334,22 +340,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       : Icons.visibility_off_outlined,
                   color: AppColors.textMuted,
                 ),
-                onPressed: () => setState(() => _obscure1 = !_obscure1),
+                onPressed: () =>
+                    setState(() => _obscure1 = !_obscure1),
               ),
               filled: true,
               fillColor: AppColors.cream,
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(13),
-                  borderSide:
-                      const BorderSide(color: AppColors.borderLight, width: 1.5)),
+                  borderSide: const BorderSide(
+                      color: AppColors.borderLight, width: 1.5)),
               enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(13),
-                  borderSide:
-                      const BorderSide(color: AppColors.borderLight, width: 1.5)),
+                  borderSide: const BorderSide(
+                      color: AppColors.borderLight, width: 1.5)),
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(13),
-                  borderSide:
-                      const BorderSide(color: AppColors.gold, width: 1.5)),
+                  borderSide: const BorderSide(
+                      color: AppColors.gold, width: 1.5)),
             ),
           ),
           const SizedBox(height: 8),
@@ -385,12 +392,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           TextFormField(
             controller: _confirmCtrl,
             obscureText: _obscure2,
-            validator: (v) => Validators.confirmPassword(v, _passCtrl.text),
+            validator: (v) =>
+                Validators.confirmPassword(v, _passCtrl.text),
             style: const TextStyle(color: AppColors.textDark),
             decoration: InputDecoration(
               hintText: 'Repite la contraseña',
-              hintStyle: const TextStyle(color: AppColors.textMutedLight),
-              prefixIcon: const Icon(Icons.check_circle_outline_rounded,
+              hintStyle:
+                  const TextStyle(color: AppColors.textMutedLight),
+              prefixIcon: const Icon(
+                  Icons.check_circle_outline_rounded,
                   color: AppColors.gold),
               suffixIcon: IconButton(
                 icon: Icon(
@@ -399,187 +409,108 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       : Icons.visibility_off_outlined,
                   color: AppColors.textMuted,
                 ),
-                onPressed: () => setState(() => _obscure2 = !_obscure2),
+                onPressed: () =>
+                    setState(() => _obscure2 = !_obscure2),
               ),
               filled: true,
               fillColor: AppColors.cream,
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(13),
-                  borderSide:
-                      const BorderSide(color: AppColors.borderLight, width: 1.5)),
+                  borderSide: const BorderSide(
+                      color: AppColors.borderLight, width: 1.5)),
               enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(13),
-                  borderSide:
-                      const BorderSide(color: AppColors.borderLight, width: 1.5)),
+                  borderSide: const BorderSide(
+                      color: AppColors.borderLight, width: 1.5)),
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(13),
-                  borderSide:
-                      const BorderSide(color: AppColors.gold, width: 1.5)),
+                  borderSide: const BorderSide(
+                      color: AppColors.gold, width: 1.5)),
             ),
           ),
-          const SizedBox(height: 32),
-          Row(children: [
-            Expanded(child: _backBtn()),
-            const SizedBox(width: 12),
-            Expanded(flex: 2, child: _nextBtn()),
-          ]),
-        ]),
-      ),
-    );
-  }
+          const SizedBox(height: 20),
 
-  // ── PASO 3: Rol ────────────────────────────────────────
-  Widget _step3() {
-    final roles = [
-      (UserRole.miembro, Icons.person_outline, 'Miembro', 'Congregante general'),
-      (UserRole.secretario, Icons.assignment_outlined, 'Secretario',
-          'Registra ingresos'),
-      (UserRole.tesorero, Icons.account_balance_wallet_outlined, 'Tesorero',
-          'Gestiona finanzas'),
-      (UserRole.pastor, Icons.church_outlined, 'Pastor', 'Accede a reportes'),
-    ];
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            _stepTitle('Tu Rol', 'Selecciona tu función en la iglesia'),
-            const SizedBox(height: 24),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.4,
-              children: roles.map((r) {
-                final isSelected = _selectedRole == r.$1;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedRole = r.$1),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.blueBg
-                          : AppColors.cream,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.gold
-                            : AppColors.borderLight,
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(r.$2,
-                              color: isSelected
-                                  ? AppColors.gold
-                                  : AppColors.textMuted,
-                              size: 28),
-                          const SizedBox(height: 8),
-                          Text(r.$3,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: isSelected
-                                    ? AppColors.goldDim
-                                    : AppColors.textDark,
-                              )),
-                          Text(r.$4,
-                              style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textMuted),
-                              textAlign: TextAlign.center),
-                        ]),
+          // ── Términos de uso ──────────────────────────
+          GestureDetector(
+            onTap: () =>
+                setState(() => _termsAccepted = !_termsAccepted),
+            child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 22,
+                height: 22,
+                margin: const EdgeInsets.only(top: 1),
+                decoration: BoxDecoration(
+                  color: _termsAccepted
+                      ? AppColors.gold
+                      : AppColors.white,
+                  border: Border.all(
+                    color: _termsAccepted
+                        ? AppColors.gold
+                        : AppColors.borderLight,
+                    width: 1.5,
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-
-            // Términos
-            GestureDetector(
-              onTap: () =>
-                  setState(() => _termsAccepted = !_termsAccepted),
-              child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 22,
-                      height: 22,
-                      margin: const EdgeInsets.only(top: 1),
-                      decoration: BoxDecoration(
-                        color: _termsAccepted
-                            ? AppColors.gold
-                            : AppColors.white,
-                        border: Border.all(
-                          color: _termsAccepted
-                              ? AppColors.gold
-                              : AppColors.borderLight,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: _termsAccepted
-                          ? const Icon(Icons.check,
-                              color: Colors.white, size: 14)
-                          : null,
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'Acepto los Términos de Uso y la Política de Privacidad del Sistema SIC',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textMuted,
-                            height: 1.5),
-                      ),
-                    ),
-                  ]),
-            ),
-            const SizedBox(height: 28),
-            Row(children: [
-              Expanded(child: _backBtn()),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gold,
-                    foregroundColor: AppColors.white,
-                    minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                  ),
-                  child: _loading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                              color: AppColors.white, strokeWidth: 2))
-                      : const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('Crear Cuenta',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700)),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward_rounded, size: 18),
-                          ],
-                        ),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: _termsAccepted
+                    ? const Icon(Icons.check,
+                        color: Colors.white, size: 14)
+                    : null,
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Acepto los Términos de Uso y la Política de Privacidad del Sistema SIC',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                      height: 1.5),
                 ),
               ),
             ]),
+          ),
+          const SizedBox(height: 28),
+
+          // ── Botones ──────────────────────────────────
+          Row(children: [
+            Expanded(child: _backBtn()),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.white,
+                  minimumSize: const Size(double.infinity, 52),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                child: _loading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                            color: AppColors.white, strokeWidth: 2))
+                    : const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Crear Cuenta',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700)),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward_rounded, size: 18),
+                        ],
+                      ),
+              ),
+            ),
           ]),
+        ]),
+      ),
     );
   }
 
@@ -592,8 +523,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textDark,
-                fontFamily:
-                    Theme.of(context).textTheme.displayMedium?.fontFamily,
+                fontFamily: Theme.of(context)
+                    .textTheme
+                    .displayMedium
+                    ?.fontFamily,
               )),
           const SizedBox(height: 4),
           Text(subtitle,
@@ -627,18 +560,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         style: const TextStyle(color: AppColors.textDark),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: AppColors.textMutedLight),
+          hintStyle:
+              const TextStyle(color: AppColors.textMutedLight),
           prefixIcon: Icon(icon, color: AppColors.gold),
           filled: true,
           fillColor: AppColors.cream,
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(13),
-              borderSide:
-                  const BorderSide(color: AppColors.borderLight, width: 1.5)),
+              borderSide: const BorderSide(
+                  color: AppColors.borderLight, width: 1.5)),
           enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(13),
-              borderSide:
-                  const BorderSide(color: AppColors.borderLight, width: 1.5)),
+              borderSide: const BorderSide(
+                  color: AppColors.borderLight, width: 1.5)),
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(13),
               borderSide:
@@ -652,14 +586,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           backgroundColor: AppColors.gold,
           foregroundColor: AppColors.white,
           minimumSize: const Size(double.infinity, 52),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14)),
           elevation: 0,
         ),
         child: const Row(mainAxisSize: MainAxisSize.min, children: [
           Text('Siguiente',
-              style:
-                  TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              style: TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w700)),
           SizedBox(width: 8),
           Icon(Icons.arrow_forward_rounded, size: 18),
         ]),
@@ -669,12 +603,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         onPressed: _prevStep,
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(double.infinity, 52),
-          side: const BorderSide(color: AppColors.borderLight, width: 1.5),
+          side: const BorderSide(
+              color: AppColors.borderLight, width: 1.5),
           foregroundColor: AppColors.textDark,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14)),
         ),
         child: const Text('Atrás',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            style:
+                TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
       );
 }

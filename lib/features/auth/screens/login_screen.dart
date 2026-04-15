@@ -257,7 +257,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onPressed: () => _showForgotPassword(context),
                         child: const Text(
                           '¿Olvidé mi contraseña?',
-                          style: TextStyle(fontSize: 13, color: AppColors.gold),
+                          style: TextStyle(fontSize: 10, color: AppColors.gold),
                         ),
                       ),
                     ]),
