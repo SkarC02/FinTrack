@@ -67,7 +67,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
     }
   }
 
-  // ── Seleccionar foto ──────────────────────────────────
   Future<void> _mostrarOpcionesFoto() async {
     await showModalBottomSheet(
       context: context,
@@ -177,7 +176,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
 
       final file = File(image.path);
 
-      // 1. Subir a Firebase Storage
       final storageRef =
           FirebaseStorage.instance.ref().child('perfiles_usuarios/$uid.jpg');
 
@@ -188,23 +186,18 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
 
       await uploadTask;
 
-      // 2. Obtener URL de descarga
       final downloadUrl = await storageRef.getDownloadURL();
 
-      // 3. Actualizar Firestore
       await FirebaseFirestore.instance
           .collection(FirebaseCollections.usuarios)
           .doc(uid)
           .update({'fotoUrl': downloadUrl});
 
-      // 4. Actualizar UI
-// Al final de _cambiarFotoPerfil, después del setState:
       if (mounted) {
         setState(() => _fotoUrl = downloadUrl);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ Foto de perfil actualizada')),
         );
-        // Mantener en perfil después de actualizar
         context.go('/perfil');
       }
     } catch (e) {
@@ -225,7 +218,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
 
       setState(() => _uploadingImage = true);
 
-      // Eliminar de Storage
       try {
         await FirebaseStorage.instance
             .ref()
@@ -233,7 +225,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
             .delete();
       } catch (_) {}
 
-      // Eliminar URL de Firestore
       await FirebaseFirestore.instance
           .collection(FirebaseCollections.usuarios)
           .doc(uid)
@@ -313,9 +304,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
     );
 
     if (confirm == true) {
-      // Primero hacer signOut y luego limpiar el token
-      // para evitar que la actualización de Firestore
-      // dispare el router antes del logout
       await ref.read(authServiceProvider).signOut();
       await FcmService.instance.limpiarToken();
     }
@@ -372,7 +360,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // ── Avatar con foto ────────────────────────────
             Center(
               child: Column(children: [
                 GestureDetector(
@@ -394,7 +381,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                                       color: AppColors.gold))
                               : null,
                     ),
-                    // Botón cámara
+
                     Positioned(
                       bottom: 0,
                       right: 0,
@@ -474,7 +461,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
             ),
             const SizedBox(height: 28),
 
-            // ── Formulario ──────────────────────────────────
             _sectionLabel('NOMBRE COMPLETO'),
             TextFormField(
               controller: _nombreCtrl,
@@ -508,7 +494,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
             ),
             const SizedBox(height: 28),
 
-            // ── Botón guardar ────────────────────────────────
             ElevatedButton(
               onPressed: _saving ? null : _guardar,
               style: ElevatedButton.styleFrom(
@@ -527,7 +512,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Botón cerrar sesión ──────────────────────────
             OutlinedButton(
               onPressed: _cerrarSesion,
               style: OutlinedButton.styleFrom(

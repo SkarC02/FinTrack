@@ -94,7 +94,6 @@ class _ReportesScreenState extends ConsumerState<ReportesScreen> {
         }
       }
 
-      // 3. REPORTE: Ingresos generales (Ingreso por día del mes)
       else if (_reporteSeleccionado == 'Ingresos generales') {
         _headers = ['Día / Fecha', 'Total del Día'];
         final snap = await FirebaseFirestore.instance
@@ -168,7 +167,6 @@ class _ReportesScreenState extends ConsumerState<ReportesScreen> {
     }
   }
 
-  // -------------------------------------------------------
   Future<void> _imprimirReporte() async {
     if (_dataRows.isEmpty) return;
 

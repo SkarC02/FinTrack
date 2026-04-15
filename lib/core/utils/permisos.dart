@@ -3,11 +3,9 @@ import '../../features/auth/models/app_user.dart';
 class Permisos {
   Permisos._();
 
-  // ── Dashboard ─────────────────────────────────────
   static bool verDashboard(UserRole rol) =>
       rol != UserRole.miembro;
 
-  // ── Ingresos ──────────────────────────────────────
   static bool verIngresos(UserRole rol) => true;
 
   static bool registrarIngreso(UserRole rol) =>
@@ -21,7 +19,6 @@ class Permisos {
   static bool eliminarIngreso(UserRole rol) =>
       rol == UserRole.admin;
 
-  // ── Gastos ────────────────────────────────────────
   static bool verGastos(UserRole rol) =>
       rol != UserRole.miembro;
 
@@ -34,7 +31,6 @@ class Permisos {
   static bool eliminarGasto(UserRole rol) =>
       rol == UserRole.admin;
 
-  // ── Miembros ──────────────────────────────────────
   static bool verMiembros(UserRole rol) =>
       rol != UserRole.miembro;
 
@@ -48,7 +44,6 @@ class Permisos {
   static bool darDeBaja(UserRole rol) =>
       rol == UserRole.admin || rol == UserRole.tesorero;
 
-  // ── Reportes ──────────────────────────────────────
   static bool verReportes(UserRole rol) =>
       rol != UserRole.miembro;
 

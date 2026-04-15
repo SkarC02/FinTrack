@@ -16,7 +16,6 @@ class MainShell extends ConsumerWidget {
     for (int i = 0; i < tabs.length; i++) {
       if (loc.startsWith(tabs[i]['path'] as String)) return i;
     }
-    // Si no encuentra retorna el primer tab disponible
     return 0;
   }
 

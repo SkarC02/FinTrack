@@ -51,7 +51,6 @@ class DashboardService {
     final inicio = DateTime(ahora.year, ahora.month, 1);
     final fin    = DateTime(ahora.year, ahora.month + 1, 0, 23, 59, 59);
 
-    // Stream de ingresos del mes
     final ingresosStream = _db
         .collection(FirebaseCollections.ingresos)
         .where(FirebaseCollections.fecha,
@@ -61,7 +60,6 @@ class DashboardService {
         .orderBy(FirebaseCollections.fecha, descending: true)
         .snapshots();
 
-    // Stream de gastos del mes
     final gastosStream = _db
         .collection(FirebaseCollections.gastos)
         .where(FirebaseCollections.fecha,
@@ -71,20 +69,17 @@ class DashboardService {
         .orderBy(FirebaseCollections.fecha, descending: true)
         .snapshots();
 
-    // ── Stream de miembros activos en tiempo real ─────
     final miembrosStream = _db
         .collection(FirebaseCollections.usuarios)
         .where(FirebaseCollections.activo, isEqualTo: true)
         .snapshots();
 
-    // Combinar los 3 streams con rxdart
     return Rx.combineLatest3(
       ingresosStream,
       gastosStream,
       miembrosStream,
       (ingresosSnap, gastosSnap, miembrosSnap) {
 
-        // ── Procesar ingresos ──────────────────────────
         final ingresos = ingresosSnap.docs
             .map(IngresoModel.fromFirestore)
             .toList();
@@ -97,7 +92,6 @@ class DashboardService {
           ingresosPorTipo[key] = (ingresosPorTipo[key] ?? 0) + i.monto;
         }
 
-        // ── Procesar gastos ────────────────────────────
         final gastos = gastosSnap.docs
             .map(GastoModel.fromFirestore)
             .toList();
@@ -110,10 +104,8 @@ class DashboardService {
               (gastosPorCategoria[g.categoria] ?? 0) + g.monto;
         }
 
-        // ── Total miembros activos en tiempo real ──────
         final totalMiembros = miembrosSnap.docs.length;
 
-        // ── Diezmadores ────────────────────────────────
         final diezmadores = ingresos
             .where((i) => i.tipo == TipoIngreso.diezmo)
             .map((i) => i.memberId)
@@ -135,7 +127,6 @@ class DashboardService {
     );
   }
 
-  // Stream de total de miembros activos en tiempo real
   Stream<int> streamTotalMiembros() {
     return _db
         .collection(FirebaseCollections.usuarios)

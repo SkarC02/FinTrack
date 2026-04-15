@@ -62,7 +62,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               const SizedBox(height: 60),
 
-              // ── Espacio para logo propio ──────────────────
               Center(
                 child: Container(
                   width: 150,
@@ -73,7 +72,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.2), width: 1.5),
                   ),
                   child: ClipRRect(
-                    //borderRadius: BorderRadius.circular(24),
                     child: Image.asset(
                       'lib/core/assets/LogoFinTrack.png',
                       fit: BoxFit.contain,
@@ -83,7 +81,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 28),
 
-              // ── Títulos ───────────────────────────────────
               Center(
                 child: Column(
                   children: [
@@ -113,7 +110,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 36),
 
-              // ── Error ─────────────────────────────────────
               if (_errorMsg != null) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -136,7 +132,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // ── Formulario ────────────────────────────────
               Form(
                 key: _formKey,
                 child: Column(
@@ -176,7 +171,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Contraseña
                     _fieldLabel('CONTRASEÑA'),
                     TextFormField(
                       controller: _passCtrl,
@@ -220,7 +214,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 14),
 
-                    // Recordarme + olvidé contraseña
                     Row(children: [
                       GestureDetector(
                         onTap: () => setState(() => _rememberMe = !_rememberMe),
@@ -263,7 +256,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ]),
                     const SizedBox(height: 24),
 
-                    // Botón login
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -298,7 +290,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Divider
                     Row(children: [
                       const Expanded(
                           child: Divider(color: AppColors.borderLight)),
@@ -317,7 +308,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ]),
                     const SizedBox(height: 20),
 
-                    // Botón Google
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
@@ -347,7 +337,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
               const SizedBox(height: 32),
 
-              // ── Link registro ─────────────────────────────
               Center(
                 child:
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [

@@ -4,31 +4,26 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  // Azul eléctrico (color principal)
   static const Color gold           = Color(0xFF3B82F6);
   static const Color goldLight      = Color(0xFF60A5FA);
   static const Color goldDim        = Color(0xFF2563EB);
   static const Color goldGlow       = Color(0x263B82F6);
 
-  // Fondos oscuros
   static const Color dark           = Color(0xFF0F172A);
   static const Color dark2          = Color(0xFF1E293B);
   static const Color dark3          = Color(0xFF263347);
   static const Color dark4          = Color(0xFF334155);
   static const Color dark5          = Color(0xFF475569);
 
-  // Fondos claros
   static const Color cream          = Color(0xFFF1F5F9);
   static const Color cream2         = Color(0xFFE2E8F0);
   static const Color white          = Color(0xFFFFFFFF);
 
-  // Texto
   static const Color textDark       = Color(0xFF0F172A);
   static const Color textMuted      = Color(0xFF64748B);
   static const Color textLight      = Color(0xFFFFFFFF);
   static const Color textMutedLight = Color(0xFF94A3B8);
 
-  // Semánticos
   static const Color green          = Color(0xFF16A34A);
   static const Color greenLight     = Color(0xFF22C55E);
   static const Color greenBg        = Color(0xFFDCFCE7);
@@ -41,7 +36,6 @@ class AppColors {
   static const Color orange         = Color(0xFFF97316);
   static const Color teal           = Color(0xFF0D9488);
 
-  // Bordes
   static const Color borderDark     = Color(0x263B82F6);
   static const Color borderLight    = Color(0xFFCBD5E1);
 }
@@ -125,7 +119,6 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
       ),
 
-      // Card
       cardTheme: CardThemeData(
         color: AppColors.dark2,
         elevation: 0,
@@ -136,7 +129,6 @@ class AppTheme {
         margin: const EdgeInsets.only(bottom: 10),
       ),
 
-      // ElevatedButton (botón dorado principal)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.gold,

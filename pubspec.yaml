@@ -51,7 +51,7 @@ flutter:
     - lib/core/assets/logotipo.png
 
 flutter_native_splash:
-  color: "#FFFFFF" # fondo blanco
+  color: "#FFFFFF" 
   image: lib/core/assets/LogoFinTrack.png
   android: true
   ios: true
@@ -64,5 +64,5 @@ flutter_launcher_icons:
   ios: true
   image_path: "lib/core/assets/LogoFinTrack.png"
   min_sdk_android: 21
-  adaptive_icon_background: "#FFFFFF"  # color de fondo blanco
+  adaptive_icon_background: "#FFFFFF"  
   adaptive_icon_foreground: "lib/core/assets/LogoFinTrack.png"

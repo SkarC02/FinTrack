@@ -15,12 +15,10 @@ import '../services/ingreso_service.dart';
 final _todosIngresosProvider = StreamProvider<List<IngresoModel>>((ref) {
   final user = ref.watch(currentUserProvider).valueOrNull;
 
-  // Si es miembro solo trae sus propios ingresos
   if (user?.rol == UserRole.miembro) {
     return ref.watch(ingresoServiceProvider).streamPorMiembro(user!.uid);
   }
 
-  // Si es staff trae todos
   return ref.watch(ingresoServiceProvider).streamTodos();
 });
 
@@ -67,7 +65,6 @@ class _HistorialIngresosScreenState
   Widget build(BuildContext context) {
     final todosAsync = ref.watch(_todosIngresosProvider);
 
-    // Obtener usuario actual para controlar permisos
     final user = ref.watch(currentUserProvider).valueOrNull;
     final esMiembro = user?.rol == UserRole.miembro;
 
@@ -139,7 +136,6 @@ class _HistorialIngresosScreenState
     );
   }
 
-  // ── KPIs ──────────────────────────────────────────────
   Widget _buildKPIs(
       List<IngresoModel> todos, List<IngresoModel> filtrados) {
     final totalTodos = todos.fold(0.0, (s, i) => s + i.monto);
@@ -183,7 +179,6 @@ class _HistorialIngresosScreenState
         ],
       );
 
-  // ── Filtro por tipo ───────────────────────────────────
   Widget _buildFiltros() {
     return Container(
       height: 46,
@@ -241,7 +236,6 @@ class _HistorialIngresosScreenState
     );
   }
 
-  // ── Filtro por rango de fecha ─────────────────────────
   Widget _buildDateRange() {
     return Container(
       color: AppColors.white,
@@ -334,7 +328,6 @@ class _HistorialIngresosScreenState
     );
   }
 
-  // ── Tile de ingreso ───────────────────────────────────
   Widget _buildIngresoTile(
     IngresoModel ingreso, {
     required bool esMiembro,
@@ -392,7 +385,6 @@ class _HistorialIngresosScreenState
                 fg: Color(0xFF15803D)),
           ],
         ),
-        // Miembro no puede editar — onTap es null
         onTap: esMiembro
             ? null
             : () => context.go('/ingresos/editar/${ingreso.id}'),

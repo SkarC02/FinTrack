@@ -51,7 +51,6 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
     final miembroAsync = ref.watch(miembroByIdProvider(widget.miembroId));
     final rol = ref.watch(rolActualProvider).valueOrNull ?? '';
 
-    // Solo el admin puede editar el rol
     final puedeEditar = rol == AppConstants.rolAdmin;
 
     return miembroAsync.when(
@@ -77,7 +76,6 @@ class _MiembroDetailScreenState extends ConsumerState<MiembroDetailScreen>
         ),
         title: Text(miembro.nombreCompleto),
         actions: [
-          // Solo aparece el botón si es admin
           if (puedeEditar)
             IconButton(
               icon: const Icon(Icons.manage_accounts_rounded),
@@ -172,7 +170,6 @@ class _PerfilTab extends StatelessWidget {
                 fmt.format(miembro.fechaMembresia)),
           ]),
 
-          // Solo el admin ve la sección de cambio de rol
           if (puedeEditar) ...[
             const SizedBox(height: 20),
             Container(

@@ -499,7 +499,6 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-// ── Auto Retry ────────────────────────────────────────────
 class _AutoRetry extends StatefulWidget {
   final VoidCallback onRetry;
   const _AutoRetry({required this.onRetry});
@@ -546,7 +545,6 @@ class _AutoRetryState extends State<_AutoRetry> {
   }
 }
 
-// ── KPI Card ──────────────────────────────────────────────
 class _KpiCard extends StatelessWidget {
   final String label;
   final String value;

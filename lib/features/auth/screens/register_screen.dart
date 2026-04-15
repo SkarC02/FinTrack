@@ -20,14 +20,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _pageCtrl = PageController();
   int _step = 0;
 
-  // Paso 1
   final _nombreCtrl    = TextEditingController();
   final _correoCtrl    = TextEditingController();
   final _telefonoCtrl  = TextEditingController();
   final _direccionCtrl = TextEditingController();
   final _form1Key      = GlobalKey<FormState>();
 
-  // Paso 2
   final _passCtrl    = TextEditingController();
   final _confirmCtrl = TextEditingController();
   final _form2Key    = GlobalKey<FormState>();
@@ -35,7 +33,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscure2     = true;
   int  _passStrength = 0;
 
-  // Siempre miembro por defecto
   final UserRole _selectedRole = UserRole.miembro;
   bool _termsAccepted = false;
   bool _loading       = false;
@@ -89,7 +86,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             nombreCompleto:_nombreCtrl.text,
             telefono:      _telefonoCtrl.text,
             direccion:     _direccionCtrl.text,
-            rol:           _selectedRole, // siempre miembro
+            rol:           _selectedRole, 
           );
     } on FirebaseAuthException catch (e) {
       if (mounted) {
@@ -124,7 +121,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  // ── Top bar ────────────────────────────────────────────
   Widget _buildTopBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -158,7 +154,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  // ── Steps indicator — solo 2 pasos ────────────────────
   Widget _buildStepsIndicator() {
     final labels = ['Datos', 'Seguridad'];
     return Padding(
@@ -248,7 +243,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  // ── PASO 1: Datos personales ───────────────────────────
   Widget _step1() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -299,7 +293,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  // ── PASO 2: Contraseña + Crear cuenta ─────────────────
   Widget _step2() {
     final strColors = [
       AppColors.textMutedLight,
@@ -430,7 +423,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           const SizedBox(height: 20),
 
-          // ── Términos de uso ──────────────────────────
           GestureDetector(
             onTap: () =>
                 setState(() => _termsAccepted = !_termsAccepted),
@@ -473,7 +465,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           const SizedBox(height: 28),
 
-          // ── Botones ──────────────────────────────────
           Row(children: [
             Expanded(child: _backBtn()),
             const SizedBox(width: 12),
@@ -514,7 +505,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  // ── Helpers ────────────────────────────────────────────
   Widget _stepTitle(String title, String subtitle) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

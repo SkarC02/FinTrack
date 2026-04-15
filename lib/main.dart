@@ -19,16 +19,13 @@ void main() async {
 
   await initializeDateFormatting('es', null);
 
-  // ── Inicializar FCM ───────────────────────────────────
   await FcmService.instance.init();
 
-  // Manejar notificaciones cuando la app está en foreground
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     if (message.notification != null) {
       debugPrint('🔔 Notificación: ${message.notification!.title}');
       debugPrint('📝 Cuerpo: ${message.notification!.body}');
 
-      // Usar el navigatorKey del router para mostrar el SnackBar
       final context = rootNavigatorKey.currentContext;
       if (context != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,8 +63,6 @@ void main() async {
     }
   });
 
-  // Manejar cuando el usuario toca la notificación
-  // y la app estaba en background
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     debugPrint('📲 Notificación tocada: ${message.notification?.title}');
   });

@@ -49,13 +49,11 @@ class _IngresoFormScreenState extends ConsumerState<IngresoFormScreen> {
     }
   }
 
-  // ── Si es miembro asigna automáticamente su propio nombre ──
+
 Future<void> _autoAsignarSiEsMiembro() async {
   final user = ref.read(currentUserProvider).valueOrNull;
   if (user == null) return;
 
-  // Para todos los roles carga su propio nombre por defecto
-  // El staff puede cambiarlo buscando otro miembro
   setState(() {
     _memberId        = user.uid;
     _memberName      = user.nombreCompleto;
@@ -239,7 +237,6 @@ Future<void> _autoAsignarSiEsMiembro() async {
     final theme = Theme.of(context);
     final cs    = theme.colorScheme;
 
-    // Verificar si es miembro para ocultar el buscador
     final user     = ref.watch(currentUserProvider).valueOrNull;
     final esMiembro= user?.rol == UserRole.miembro;
 
@@ -339,12 +336,9 @@ Future<void> _autoAsignarSiEsMiembro() async {
 
                     const SizedBox(height: 24),
 
-                    // ── Miembro ───────────────────────────────
                     _SectionLabel(label: 'MIEMBRO'),
                     const SizedBox(height: 8),
 
-                    // Si es miembro muestra su nombre fijo
-                    // Si es staff muestra el buscador
                     if (esMiembro)
                       Container(
                         padding: const EdgeInsets.symmetric(

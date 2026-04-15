@@ -16,7 +16,7 @@ class FcmService {
       sound: true,
     );
 
-    debugPrint('🔔 Permiso FCM: ${settings.authorizationStatus}');
+    debugPrint(' Permiso FCM: ${settings.authorizationStatus}');
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       await _guardarToken();
@@ -28,7 +28,7 @@ class FcmService {
   Future<void> _guardarToken() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      debugPrint('❌ FCM: uid es null');
+      debugPrint(' FCM: uid es null');
       return;
     }
 
@@ -36,7 +36,7 @@ class FcmService {
     debugPrint('🔑 FCM Token: $token');
 
     if (token == null) {
-      debugPrint('❌ FCM: token es null');
+      debugPrint(' FCM: token es null');
       return;
     }
 
@@ -45,11 +45,11 @@ class FcmService {
         .doc(uid)
         .update({'fcmToken': token});
 
-    debugPrint('✅ FCM Token guardado correctamente');
+    debugPrint(' FCM Token guardado correctamente');
   }
 
   Future<void> _actualizarToken(String token) async {
-    debugPrint('🔄 FCM Token actualizado: $token');
+    debugPrint(' FCM Token actualizado: $token');
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
@@ -68,6 +68,6 @@ class FcmService {
         .doc(uid)
         .update({'fcmToken': ''});
 
-    debugPrint('🗑️ FCM Token limpiado');
+    debugPrint(' FCM Token limpiado');
   }
 }

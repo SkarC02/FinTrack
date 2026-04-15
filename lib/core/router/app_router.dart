@@ -24,7 +24,6 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
-  // Escuchar cambios del usuario para refrescar rutas
   ref.watch(currentUserProvider);
 
   return GoRouter(
@@ -36,22 +35,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
 
-      // Si no está autenticado va al login
       if (!isLoggedIn && !isPublicRoute) return AppRoutes.login;
 
-      // Si está autenticado obtener usuario
       if (isLoggedIn) {
         final userAsync = ref.read(currentUserProvider);
 
-        // Esperar a que cargue el usuario
         if (userAsync.isLoading) return null;
 
         final user = userAsync.valueOrNull;
 
-        // Si el usuario aún no cargó no redirigir
         if (user == null) return null;
 
-        // Si va a ruta pública redirigir según rol
         if (isPublicRoute) {
           if (user.rol == UserRole.miembro) {
             return AppRoutes.ingresos;
@@ -59,7 +53,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return AppRoutes.dashboard;
         }
 
-        // Si es miembro verificar rutas permitidas
         if (user.rol == UserRole.miembro) {
           const rutasPermitidas = [
             AppRoutes.ingresos,
@@ -87,13 +80,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
-          // Dashboard
           GoRoute(
             path: AppRoutes.dashboard,
             builder: (context, state) => const DashboardScreen(),
           ),
 
-          // Ingresos
           GoRoute(
             path: AppRoutes.ingresos,
             builder: (context, state) => const HistorialIngresosScreen(),
@@ -111,7 +102,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Miembros
           GoRoute(
             path: AppRoutes.miembros,
             builder: (context, state) => const MiembrosListScreen(),
@@ -125,7 +115,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Gastos
           GoRoute(
             path: AppRoutes.gastos,
             builder: (context, state) => const HistorialGastosScreen(),
@@ -143,13 +132,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Perfil
           GoRoute(
             path: '/perfil',
             builder: (context, state) => const PerfilScreen(),
           ),
 
-          // Reportes
           GoRoute(
             path: AppRoutes.reportes,
             builder: (context, state) => const ReportesScreen(),
@@ -165,7 +152,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-// ── Notifier para refrescar el router cuando cambia el usuario ────────────
 class _RouterNotifier extends ChangeNotifier {
   _RouterNotifier(this._ref) {
     _ref.listen(currentUserProvider, (_, __) {
