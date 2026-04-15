@@ -23,8 +23,8 @@ void main() async {
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     if (message.notification != null) {
-      debugPrint('🔔 Notificación: ${message.notification!.title}');
-      debugPrint('📝 Cuerpo: ${message.notification!.body}');
+      debugPrint(' Notificación: ${message.notification!.title}');
+      debugPrint(' Cuerpo: ${message.notification!.body}');
 
       final context = rootNavigatorKey.currentContext;
       if (context != null) {
